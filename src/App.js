@@ -5,8 +5,11 @@ import {
   Route,
   Link,
   useRouteMatch,
+  useLocation,
   useParams
 } from "react-router-dom";
+import { withRouter } from 'react-router'
+
 import SimpleLeaflet from './components/SimpleLeaflet'
 import './App.css'
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -14,8 +17,10 @@ import FindByPointComponent from "./components/FindByPointComponent";
 import Datasets from "./components/Datasets"
 import Locations from "./components/Locations"
 import Linksets from "./components/Linksets"
+import Resource from "./components/Resource"
 
 export default function App() {
+  
   return (
     <Router>
       <div>
@@ -72,14 +77,13 @@ function About() {
 }
 
 
-
-function Resource() {
-  return (
-     <div>
-        <h2>Resource</h2>
-     </div>
-  );
+// A custom hook that builds on useLocation to parse
+// the query string for you.
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
 }
+
+
 
 function Topics() {
   let match = useRouteMatch();
