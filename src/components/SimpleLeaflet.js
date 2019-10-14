@@ -3,13 +3,8 @@
 import React, { createRef, Component } from 'react'
 import { Map, TileLayer, Marker, Popup } from 'react-leaflet'
 
-type State = {
-  lat: number,
-  lng: number,
-  zoom: number,
-}
 
-export default class SimpleLeaflet extends Component<{}, State> {
+export default class SimpleLeaflet extends Component {
 
   constructor(props) {
     super(props);
@@ -26,9 +21,9 @@ export default class SimpleLeaflet extends Component<{}, State> {
   }
 
 
-  mapRef = createRef<Map>()
+  mapRef = createRef()
 
-  handleClick = (e: Object) => {
+  handleClick = (e) => {
     const map = this.mapRef.current
     console.log("click");
     console.log(e);
@@ -44,7 +39,7 @@ export default class SimpleLeaflet extends Component<{}, State> {
     
   }
 
-  handleLocationFound = (e: Object) => {
+  handleLocationFound = (e) => {
     this.setState({
       hasLocation: true,
       latlng: e.latlng,

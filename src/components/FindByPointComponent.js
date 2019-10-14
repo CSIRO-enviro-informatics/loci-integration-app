@@ -9,7 +9,7 @@ import SimpleLeaflet from "./SimpleLeaflet"
 import FindByPointResults from "./FindByPointResults"
 
 
-export default class FindByPointComponent extends Component<{}, State> {
+export default class FindByPointComponent extends Component {
   constructor(props) {
     super(props)
 

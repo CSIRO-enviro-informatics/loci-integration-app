@@ -11,24 +11,47 @@ import SimpleLeaflet from './components/SimpleLeaflet'
 import './App.css'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import FindByPointComponent from "./components/FindByPointComponent";
-
+import Datasets from "./components/Datasets"
+import Locations from "./components/Locations"
+import Linksets from "./components/Linksets"
 
 export default function App() {
   return (
     <Router>
       <div>
-        <ul>
+        <ul  class="nav">
           <li>
             <Link to="/">Home</Link>
           </li>
           <li>
             <Link to="/about">About</Link>
           </li>
+          <li>
+            <Link to="/datasets">Datasets</Link>
+          </li>
+          <li>
+            <Link to="/linksets">Linksets</Link>
+          </li>
+          <li>
+            <Link to="/locations">Locations</Link>
+          </li>
         </ul>
 
         <Switch>
           <Route path="/about">
             <About />
+          </Route>
+          <Route path="/datasets">
+            <Datasets />
+          </Route>
+          <Route path="/linksets">
+            <Linksets />
+          </Route>
+          <Route path="/locations">
+            <Locations />
+          </Route>
+          <Route path="/resource">
+            <Resource />
           </Route>
           <Route path="/">            
             <FindByPointComponent />
@@ -44,6 +67,16 @@ function About() {
      <div>
         <h2>About</h2>
         <p>Prototype interfaces using the <a href="https://api.loci.cat">Loc-I Integration API</a>.</p>
+     </div>
+  );
+}
+
+
+
+function Resource() {
+  return (
+     <div>
+        <h2>Resource</h2>
      </div>
   );
 }
