@@ -5,10 +5,16 @@ Loc-I Integration Applications
 
 * yarn
 * npm
-
+or 
+* docker, docker-compose
 
 ## Quick start
 
 ```
+$ yarn install
 $ yarn start
+```
+or 
+```
+docker-compose up -d 
 ```
