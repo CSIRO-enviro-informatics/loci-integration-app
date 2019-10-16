@@ -30,7 +30,8 @@ export default class Resource extends Component {
           (result) => {
             this.setState({
               isLoaded: true,
-              resource: JSON.stringify(result)
+              //resource: JSON.stringify(result)
+              resource: result              
             });
           },
           // Note: it's important to handle errors here
@@ -44,7 +45,25 @@ export default class Resource extends Component {
           }
         )
     }
-  
+    renderResourceAsTable() {
+      const v = Object.keys(this.state.resource);
+      
+      const arr = v.map((p, index) => {
+        console.log(p)
+        const val = JSON.stringify(this.state.resource[p])
+        console.log(val)
+        
+        return (
+           <tr key={index}>
+              <td>{p}</td>
+              <td>{val}</td>
+
+           </tr>
+        )
+     })
+     console.log(arr);
+     return arr;
+    }
     render() {
       const { error, isLoaded, resource } = this.state;
       if (error) {
@@ -55,7 +74,16 @@ export default class Resource extends Component {
         return (
             <div>
             <h1>Resource</h1>
-            {resource}
+            <table id='resource'>
+               <tbody>
+                 <tr>
+                  <th>Property</th>
+                  <th>Value</th>
+                  </tr>
+
+               {this.renderResourceAsTable()}
+               </tbody>
+            </table>
           </div>
         );
       }

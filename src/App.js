@@ -24,9 +24,12 @@ export default function App() {
   return (
     <Router>
       <div>
-        <ul  class="nav">
+        <ul  className="nav">
           <li>
-            <Link to="/">Home</Link>
+            <Link to="/">
+                 <span className="logo"><img id='logo' src="loci-logo.png"/></span> 
+                 Loc-I Explorer
+            </Link>
           </li>
           <li>
             <Link to="/about">About</Link>
