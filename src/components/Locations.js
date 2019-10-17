@@ -11,7 +11,7 @@ export default class Locations extends Component {
     }
   
     componentDidMount() {
-      fetch("https://api.loci.cat/api/v1/locations?count=10&offset=0")
+      fetch(process.env.REACT_APP_LOCI_INTEGRATION_API_ENDPOINT + "/locations?count=10&offset=0")
         .then(res => res.json())
         .then(
           (result) => {

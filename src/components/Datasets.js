@@ -13,7 +13,7 @@ export default class Datasets extends Component {
     }
   
     componentDidMount() {
-      fetch("https://api.loci.cat/api/v1/datasets?count=1000&offset=0")
+      fetch(process.env.REACT_APP_LOCI_INTEGRATION_API_ENDPOINT + "/datasets?count=1000&offset=0")
         .then(res => res.json())
         .then(
           (result) => {
