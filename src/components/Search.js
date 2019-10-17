@@ -20,7 +20,7 @@ export default class SearchComponent extends Component {
     this.state = {
       query: null,
       queryResults: null,
-      hitCount: 0
+      queryTimeElapsed: null
     }
     //this.updateResult = this.updateResult.bind(this);
     this.queryString = React.createRef();
@@ -60,15 +60,18 @@ export default class SearchComponent extends Component {
   }
   
   formatSummaryStat(){
-    if(this.state.hitCount == 0) {
+    if(this.state.hitCount == null) {
       return <p/>
+    }
+    if(this.state.hitCount == 0) {
+      return <p>No results found.</p>
     }
     return <p>{this.state.hitCount} results ({this.state.queryTimeElapsed} milliseconds).</p>
   }
 
   search(e) {
     console.log("Search query: " + this.state.query)
-    fetch("http://localhost:9200/_search?q=" + this.state.query)
+    fetch(process.env.REACT_APP_LOCI_INTEGRATION_API_DEV_ENDPOINT + "/location/find-by-label?query=" + this.state.query)
         .then(res => res.json())
         .then(
           (result) => {
