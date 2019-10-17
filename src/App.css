@@ -89,3 +89,13 @@ span.logo {
   background-color: #4CAF50;
   color: white;
 }
+
+.search-result-block {
+  padding-top: 5px;
+  padding-bottom: 10px;
+}
+
+.search-result-label {
+  font-style: oblique;
+
+}

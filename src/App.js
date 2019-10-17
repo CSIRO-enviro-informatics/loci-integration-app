@@ -18,6 +18,7 @@ import Datasets from "./components/Datasets"
 import Locations from "./components/Locations"
 import Linksets from "./components/Linksets"
 import Resource from "./components/Resource"
+import SearchComponent from "./components/Search";
 
 export default function App() {
   
@@ -35,6 +36,9 @@ export default function App() {
             <Link to="/about">About</Link>
           </li>
           <li>
+            <Link to="/search">Search</Link>
+          </li>
+          <li>
             <Link to="/datasets">Datasets</Link>
           </li>
           <li>
@@ -48,6 +52,9 @@ export default function App() {
         <Switch>
           <Route path="/about">
             <About />
+          </Route>
+          <Route path="/search">
+            <SearchComponent />
           </Route>
           <Route path="/datasets">
             <Datasets />
