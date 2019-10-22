@@ -47,9 +47,15 @@ export default function App() {
           <li>
             <Link to="/locations">Locations</Link>
           </li>
+          <li>
+            <Link to="/tools">Tools</Link>
+          </li>
         </ul>
 
         <Switch>
+          <Route path="/tools">
+            <LociTools />
+          </Route>
           <Route path="/about">
             <About />
           </Route>
@@ -82,6 +88,8 @@ function About() {
      <div>
         <h2>About</h2>
         <p>Prototype interfaces using the <a href="https://api.loci.cat">Loc-I Integration API</a>.</p>
+        <p>Please note this site is in development and is available for demonstration purposes only.</p>
+        <p>Check out more information about the Loc-I project at <a href="http://locationindex.org/">http://locationindex.org/</a></p>
      </div>
   );
 }
@@ -94,6 +102,24 @@ function useQuery() {
 }
 
 
+function LociTools() {
+  let match = useRouteMatch();
+
+  return (
+    <div>
+      <h2>Loc-I Tools</h2>
+
+      <ul>
+        <li>
+          <a href='http://excelerator.loci.cat/'>Excelerator</a>
+        </li>
+        <li>
+          <a href='http://excelerator.loci.cat/iderdown'>IDerDown</a>
+        </li>
+      </ul>
+    </div>
+  );
+}
 
 function Topics() {
   let match = useRouteMatch();
