@@ -24,7 +24,7 @@ export default class Resource extends Component {
       console.log(parsed);
       
 
-      fetch("https://api.loci.cat/api/v1/resource?uri=" +parsed.id)
+      fetch(process.env.REACT_APP_LOCI_INTEGRATION_API_ENDPOINT + "/resource?uri=" +parsed.id)
         .then(res => res.json())
         .then(
           (result) => {
