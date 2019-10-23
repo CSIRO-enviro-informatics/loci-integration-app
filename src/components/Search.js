@@ -74,7 +74,7 @@ export default class SearchComponent extends Component {
     //TODO: Replace the following env var with the deployed externally online version when that's ready
     //right now, it depends on an instance of the loci-integration-api deployed locally with ES 
     //and an index populated with <location, label> tuples
-    fetch(process.env.REACT_APP_LOCI_INTEGRATION_API_DEV_ENDPOINT + "/location/find-by-label?query=" + this.state.query)
+    fetch(process.env.REACT_APP_LOCI_INTEGRATION_API_ENDPOINT + "/location/find-by-label?query=" + this.state.query)
         .then(res => res.json())
         .then(
           (result) => {
