@@ -40,14 +40,23 @@ export default class FindByPointResults extends Component {
 
     var fn = this.renderWithins;
 
+    var message = (<div>Click on the map to find locations from the LocI cache.</div>)
+    if(this.props.locations && Object.keys(this.props.locations).length > 0 ) {
+        message = (<div><h3>Results</h3></div>)
+    }
     
+    var pointMessage = (<p></p>)
+    if(this.props.latlng) {
+      pointMessage = (<p>Point selected on map: {this.props.latlng}</p>)
+    }
+
     return (
       <Container>
         <Row>
           <Col sm={12}>
-            <h3>Results</h3>
+            {message}
 
-            <p>{this.props.latlng}</p>
+            {pointMessage}
             {
               Object.keys(this.props.locations).map((key, index) => (
                 <div key={index}>
