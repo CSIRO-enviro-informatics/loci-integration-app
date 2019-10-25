@@ -5,11 +5,12 @@ import Container from "react-bootstrap/Container";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 
-export default class FindByPointWithinsResults extends Component {
+export default class FindByPointOverlapResults extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      withins: [],
+      overlaps: [],
+      num_overlaps: 0,
       locationUri: this.props.locationUri
     }
   }
@@ -22,7 +23,7 @@ export default class FindByPointWithinsResults extends Component {
 
     console.log(this.props.locationUri)
     
-    this.findWithins(this.props.locationUri);
+    this.findoverlaps(this.props.locationUri);
   }
 
   componentDidUpdate() {
@@ -34,26 +35,40 @@ export default class FindByPointWithinsResults extends Component {
 
       console.log(this.props.locationUri)
 
-      this.findWithins(this.props.locationUri);
+      this.findoverlaps(this.props.locationUri);
     }
   }
 
-  formatWithins(withins_locations) {
-    console.log(withins_locations);
-    if (withins_locations && 'locations' in withins_locations) {
-      return withins_locations.locations;
+  getoverlaps(overlaps_locations) {
+    console.log(overlaps_locations);
+    if (overlaps_locations && 'overlaps' in overlaps_locations) {
+      return overlaps_locations.overlaps;
     }
-    return [];
+
   }
 
-  findWithins(uri) {
-    //https://api2.loci.cat/api/v1/location/within?uri=http%3A%2F%2Flinked.data.gov.au%2Fdataset%2Fasgs2016%2Fmeshblock%2F30563394200&count=1000&offset=0
+  getcount(overlaps_locations) {
+    if (overlaps_locations && 'meta' in overlaps_locations) {
+      return overlaps_locations.meta.count;
+    }
+    return -1;
+  }
+
+
+  findoverlaps(uri) {
+    //https://api2.loci.cat/api/v1/location/overlaps?uri=http%3A%2F%2Flinked.data.gov.au%2Fdataset%2Fasgs2016%2Fmeshblock%2F30563383400
+    //    &areas=true&proportion=true&contains=false&within=false&count=1000&offset=0
+
     console.log("within");
 
     var url = new URL(process.env.REACT_APP_LOCI_INTEGRATION_API_ENDPOINT
-      + "/location/within"),
+      + "/location/overlaps"),
       params = {
         uri: uri,
+        areas: true,
+        proportion: true,
+        contains: false,
+        within: false,        
         count: 1000,
         offset: 0
       }
@@ -64,7 +79,8 @@ export default class FindByPointWithinsResults extends Component {
       .then(
         (result) => {
           this.setState({
-            withins: this.formatWithins(result),
+            overlaps: this.getoverlaps(result),
+            num_overlaps: this.getcount(result),
             isLoading: false
           });
           console.log(result);
@@ -80,15 +96,15 @@ export default class FindByPointWithinsResults extends Component {
       )
   }
 
-  renderWithins(withinsObj) {
-    console.log("renderWithins")
-    console.log(withinsObj)
+  renderoverlaps(overlapsObj) {
+    console.log("renderoverlaps")
+    console.log(overlapsObj)
 
-    if (withinsObj) {
+    if (overlapsObj) {
       return (<ul> {
-        withinsObj.map((item, index) => (
+        overlapsObj.map((item, index) => (
           <li className="indent" key={index}>
-            <a href={item}>{item}</a>
+            <a href={item.uri}>{item.uri}</a>
           </li>
         ))
       }
@@ -100,10 +116,10 @@ export default class FindByPointWithinsResults extends Component {
   render() {
     const isLoading  = this.state.isLoading;
     if (isLoading) {
-      return (<div><span>Withins:</span><p>Loading ...</p></div>);
+      return (<div><span>overlaps:</span><p>Loading ...</p></div>);
     }
     return (
-      <div><span>Within:</span>{this.renderWithins(this.state.withins)}</div>
+      <div><span>Overlapping with ({this.state.num_overlaps} locations):</span>{this.renderoverlaps(this.state.overlaps)}</div>
     );
   }
 }

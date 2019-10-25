@@ -5,6 +5,8 @@ import Container from "react-bootstrap/Container";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import FindByPointWithinsResults from './FindByPointWithinsResults'
+import FindByPointOverlapResults from './FindByPointOverlapResults'
+
 
 export default class FindByPointResults extends Component {
   constructor(props) {
@@ -68,6 +70,7 @@ export default class FindByPointResults extends Component {
                           <li key={index}>
                             <a href={uri}>{uri}</a>
                             <FindByPointWithinsResults locationUri={uri} />
+                            <FindByPointOverlapResults locationUri={uri} />
                           </li>
                         );
                       })
