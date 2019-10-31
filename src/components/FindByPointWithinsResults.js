@@ -68,6 +68,7 @@ export default class FindByPointWithinsResults extends Component {
             isLoading: false
           });
           console.log(result);
+          this.props.parentCallback(uri, "within", result);
         },
         // Note: it's important to handle errors here
         // instead of a catch() block so that we don't swallow

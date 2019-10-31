@@ -99,3 +99,39 @@ span.logo {
   font-style: oblique;
 
 }
+
+
+/* D3 stuff */
+
+
+.links line {
+  stroke: grey
+}
+
+
+.graphtooltip {
+  position: absolute;
+  background-color: blue;
+  padding: 10px;
+  z-index:10000;
+}
+
+.nodes circle {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+circle.root {
+  stroke: red;
+  fill: red;
+}
+
+circle.within {
+  stroke: blue;
+  fill: blue;
+}
+
+circle.overlap {
+  stroke: green;
+  fill: green;
+}
