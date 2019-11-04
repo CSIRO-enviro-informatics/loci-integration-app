@@ -7,6 +7,8 @@ import Row from "react-bootstrap/Row";
 
 import SimpleLeaflet from "./SimpleLeaflet"
 import FindByPointResults from "./FindByPointResults"
+import SearchInputWidget from "./SearchInputWidget"
+import SearchResultWidget from './SearchResultWidget';
 
 export default class FindByPointComponent extends Component {
   constructor(props) {
@@ -15,10 +17,12 @@ export default class FindByPointComponent extends Component {
     this.state = {
       latlng: null,
       locations: {},
-      num_locations: 0
+      num_locations: 0,
+      searchMode: false,
+      findByPointMode: false,
+      searchQuery: ""
     }
     this.updateResult = this.updateResult.bind(this);
-
 
     this.testFn = (latlng) => {
       console.log("TestFN here! " + latlng);
@@ -98,6 +102,26 @@ export default class FindByPointComponent extends Component {
         }
       )
   }
+  
+  performSearch = (searchQuery) => {
+    //this.setState({message: childData})
+    this.setState({
+      searchMode: true,
+      findByPointMode: false,
+      searchQuery: searchQuery
+    });
+  }
+
+
+  performFindAtPoint = (d) => {
+    this.setState({
+      searchMode: false,
+      findByPointMode: true      
+    });
+  }
+
+ 
+
   render() {
     var ll = null;
     var numLoc = 0;
@@ -107,16 +131,30 @@ export default class FindByPointComponent extends Component {
       ll = this.state.latlng.lat.toString() + ", " + this.state.latlng.lng.toString();
       locations = this.state.locations;
       numLoc = this.state.num_locations;
-
     }
+
+    var searchOrFindByPointResultComponent = (this.state.searchMode) 
+            ? (<SearchResultWidget query={this.state.searchQuery} />) : 
+              (<FindByPointResults latlng={ll} locations={locations} count={numLoc} />) ;
+
     return (
       <Container fluid='true'>
         <Row>
           <Col sm={6}>
-            <SimpleLeaflet inputRef={this.testFn} />
+            <SimpleLeaflet inputRef={this.testFn} pointSelectCallback={this.performFindAtPoint}/>
           </Col>
           <Col sm={6}>
-            <FindByPointResults latlng={ll} locations={locations} count={numLoc} />
+            <Row>
+              <Col sm={12}>
+                <SearchInputWidget placeholderMsg='Search by location label (e.g. NSW) or click on the map to find locations' 
+                        parentCallback={this.callbackFunction} searchCallback={this.performSearch} />                        
+              </Col>
+            </Row>
+            <Row>
+              <Col sm={12}>
+                 {searchOrFindByPointResultComponent}
+              </Col>
+            </Row>
           </Col>
         </Row>
       </Container>

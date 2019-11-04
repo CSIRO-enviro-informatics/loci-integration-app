@@ -135,3 +135,22 @@ circle.overlap {
   stroke: green;
   fill: green;
 }
+
+.searchbox {
+  margin-left: 5px;
+  margin-top: 10px;
+  height: 48px !important;
+  vertical-align: middle !important;
+}
+
+.searchbox-maininput {
+  height: 48px !important;
+  vertical-align: middle !important;
+}
+
+
+.searchbox-shadow {
+  -moz-box-shadow:    rgba(0, 0, 0, 0.1) 0px 2px 4px !important;
+  -webkit-box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 4px !important;
+  box-shadow:         rgba(0, 0, 0, 0.1) 0px 2px 4px !important;
+}

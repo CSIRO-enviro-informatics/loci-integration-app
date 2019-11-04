@@ -26,12 +26,12 @@ export default class FindByPointResults extends Component {
     this.updateLocations = this.updateLocations.bind(this);
   }
   componentDidMount() {
-    this.setState({ 
+    this.setState({
       contextLocationLookups: {}
-    });   
+    });
   }
 
-  
+
   componentDidUpdate() {
     if (this.props.latlng != this.state.latlng) {
       this.setState({
@@ -53,14 +53,17 @@ export default class FindByPointResults extends Component {
     })
   }
 
-  convertTreeObjToD3Data(parent, node, graphData) {
+  convertTreeObjToD3Data(parent, node, graphData, idx = {}) {
     var curr = {
-      'name': node['name'], 
+      'name': node['name'],
       'label': node['label']
     };
 
-    graphData['nodes'].push(curr)
-
+    //Add to node list only if not seen before
+    if (!(curr['name'] in idx)) {
+      graphData['nodes'].push(curr)
+      idx[curr['name']] = 1
+    }
 
     node['children'].forEach(item => {
       console.log(item)
@@ -70,7 +73,7 @@ export default class FindByPointResults extends Component {
         "target": item['name']
       });
 
-      this.convertTreeObjToD3Data(curr, item, graphData)    
+      this.convertTreeObjToD3Data(curr, item, graphData, idx)
     });
 
     return graphData;
@@ -82,18 +85,18 @@ export default class FindByPointResults extends Component {
     console.log(data);
 
     var curr = this.state.contextLocationLookups;
-    
-    if ( !(uri in curr)) {
+
+    if (!(uri in curr)) {
       curr[uri] = {};
-    }    
+    }
     if (!(relation in curr[uri])) {
-      curr[uri][relation] = {};      
+      curr[uri][relation] = {};
     }
     curr[uri][relation] = data;
-    
-    
-    this.setState( {
-      contextLocationLookups:  curr
+
+
+    this.setState({
+      contextLocationLookups: curr
     })
   }
 
@@ -112,81 +115,81 @@ export default class FindByPointResults extends Component {
     var fn = this.renderWithins;
     var contextLocationLookups = this.state.contextLocationLookups;
     console.log(contextLocationLookups);
-    var message = (<div>Click on the map to find locations from the LocI cache.</div>)
-    if(this.props.locations && Object.keys(this.props.locations).length > 0 ) {
-        message = (<div><h3>Results</h3></div>)
+    var message = (<div></div>)
+    if (this.props.locations && Object.keys(this.props.locations).length > 0) {
+      message = (<div><h3>Results</h3></div>)
     }
-    
+
     var pointMessage = (<p></p>)
-    if(this.props.latlng) {
+    if (this.props.latlng) {
       pointMessage = (<p>Point selected on map: {this.props.latlng}</p>)
     }
 
-    var graphData = {"nodes": [], "links": []};
+    var graphData = { "nodes": [], "links": [] };
 
     var rootObj = {
-        'name': 'root', 
-        'label': 'root',
-        'class': "root",
-        'fixed': true,
-        'children' : []
+      'name': 'root',
+      'label': 'root',
+      'class': "root",
+      'fixed': true,
+      'children': []
     };
 
     Object.keys(this.props.locations).map((loc_type_key, index) => {
       var c = {
-        'name': loc_type_key, 
+        'name': loc_type_key,
         'label': labelMapping[loc_type_key],
-        'children' : []
+        'children': []
       };
 
       //iterate through uris
       Object.keys(contextLocationLookups).map((uri, index) => {
-        if( 
-          (loc_type_key == 'cc' && uri.includes("contractedcatchment")) 
-            ||
-          (loc_type_key == 'mb' && uri.includes("meshblock")) 
-          ) {
-            var node = {
-              'name': uri, 
-              'label': uri,
-              'children' : []
-            };
-            var withinChild = {
-              'name': uri+"-within", 
-              'label': "within",
-              'children' : []
-            };
+        if (
+          (loc_type_key == 'cc' && uri.includes("contractedcatchment"))
+          ||
+          (loc_type_key == 'mb' && uri.includes("meshblock"))
+        ) {
+          var node = {
+            'name': uri,
+            'label': uri,
+            'children': []
+          };
+          var withinChild = {
+            'name': uri + "-within",
+            'label': "within",
+            'children': []
+          };
 
-            if('within' in contextLocationLookups[uri]) {
-              contextLocationLookups[uri]['within'].locations.forEach(item => {
-                  withinChild.children.push({
-                    'name': item, 
-                    'label': item,
-                    'children' : []                   
-                  });
-              });            
-            }
-
-            var overlapChild = {
-              'name': uri+"-overlap", 
-              'label': "overlap",
-              'children' : []
-            };
-            if('overlap' in contextLocationLookups[uri]) {
-              contextLocationLookups[uri]['overlap'].overlaps.forEach(item => {
-                overlapChild.children.push({
-                  'name': item.uri, 
-                  'label': item.uri,
-                  'children' : []                   
-                });
+          if ('within' in contextLocationLookups[uri]) {
+            contextLocationLookups[uri]['within'].locations.forEach(item => {
+              withinChild.children.push({
+                'name': item,
+                'label': item,
+                'children': []
               });
-            }
-
-            node.children.push(withinChild)
-            node.children.push(overlapChild)
-            
-            c['children'].push(node);
+            });
           }
+
+          var overlapChild = {
+            'name': uri + "-overlap",
+            'label': "overlap",
+            'children': []
+          };
+          if ('overlap' in contextLocationLookups[uri]) {
+            contextLocationLookups[uri]['overlap'].overlaps.forEach(item => {
+              overlapChild.children.push({
+                'name': item.uri,
+                'label': item.uri,
+                'children': []
+              });
+            });
+          }
+
+          node.children.push(withinChild)
+          node.children.push(overlapChild)
+
+          c['children'].push(node);
+        }
 
       })
 
@@ -194,63 +197,58 @@ export default class FindByPointResults extends Component {
       rootObj['children'].push(c);
     });
     console.log(rootObj);
-    graphData = this.convertTreeObjToD3Data(null, rootObj, graphData);
+    graphData = this.convertTreeObjToD3Data(null, rootObj, graphData, {});
     console.log(graphData);
 
     var here = this;
-    var arrDivs = Object.keys(this.props.locations).map((key, index) => (      
-                   <div key={index}>
-                   <p > {labelMapping[key]} </p>
-                   <ul>
-                     {
-                       this.props.locations[key].map(function (uri, index) {
-                         return (
-                           <li key={index}>
-                             <a href={uri}>{uri}</a>
-                             <FindByPointWithinsResults locationUri={uri} parentCallback={here.callbackFunction} />
-                             <FindByPointOverlapResults locationUri={uri} parentCallback={here.callbackFunction} />
-                           </li>
-                         );
-                       })
-                     }
-                   </ul>
-                 </div>  
-    ));  
-              
-    var validArrDivsOrBlank = (arrDivs.length > 0) ? 
-                (
-                  <Tabs defaultActiveKey="home" id="uncontrolled-tab-example">
-                  <Tab eventKey="home" title="Home">
-                  <div><FindByPointGraphVisualiser graphData={graphData}/></div>
-                  {arrDivs}
-                  </Tab>
-                  <Tab eventKey="graph" title="Graph">
-                    
-                  </Tab>
-                </Tabs>
-                )
-                  : 
-                  <div></div>;
+    var arrDivs = Object.keys(this.props.locations).map((key, index) => (
+      <div key={index}>
+        <p > {labelMapping[key]} </p>
+        <ul>
+          {
+            this.props.locations[key].map(function (uri, index) {
+              return (
+                <li key={index}>
+                  <a href={uri}>{uri}</a>
+                  <FindByPointWithinsResults locationUri={uri} parentCallback={here.callbackFunction} />
+                  <FindByPointOverlapResults locationUri={uri} parentCallback={here.callbackFunction} />
+                </li>
+              );
+            })
+          }
+        </ul>
+      </div>
+    ));
 
-    
+    var validArrDivsOrBlank = (arrDivs.length > 0) ?
+      (
+        <div>
+            <div><FindByPointGraphVisualiser graphData={graphData} /></div>
+            {arrDivs}
+            </div>        
+      )
+      :
+      <div></div>;
+
+
 
     return (
       <Container>
         <Row>
           <Col sm={12}>
-          
+
 
             {message}
 
             {pointMessage}
 
             {validArrDivsOrBlank}
-            
 
-            
 
-           
-            
+
+
+
+
           </Col>
         </Row>
       </Container>
