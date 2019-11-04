@@ -146,6 +146,7 @@ circle.overlap {
 .searchbox-maininput {
   height: 48px !important;
   vertical-align: middle !important;
+  font-size: 1.2rem !important;
 }
 
 
@@ -153,4 +154,28 @@ circle.overlap {
   -moz-box-shadow:    rgba(0, 0, 0, 0.1) 0px 2px 4px !important;
   -webkit-box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 4px !important;
   box-shadow:         rgba(0, 0, 0, 0.1) 0px 2px 4px !important;
+}
+
+.searchbox-icon {  
+  background-image : url('/search.svg');
+  background-size: cover;
+  display: inline-block;
+  height: 48px;
+  width: 48px;
+}
+
+.searchbox-icon {  
+  background-image : url('/search-lightgray.svg');
+  background-size: cover;
+  display: inline-block;
+  vertical-align: middle !important;
+  text-align: center;
+  height: 23px;
+  width: 23px;
+  color: #646464 !important;
+  margin: 7px 7px 7px 7px !important;
+}
+
+.searchbox-iconwrapper {
+  margin: 5px 5px 5px 5px !important;
 }
