@@ -50,7 +50,7 @@ export default class SearchPageComponent extends Component {
     })
   }
   search() {
-    //this.props.parentCallback("Hey Popsie, How’s it going?");
+    //this.props.parentCallback("Hey Popsie, How’s it going?"); <FontAwesomeIcon className='searchfontawesomeicon' icon={faSearch}>search</FontAwesomeIcon> 
 
     this.props.searchCallback(this.state.query)
 
@@ -63,9 +63,8 @@ export default class SearchPageComponent extends Component {
     }
     return (
       <InputGroup className="mb-3 searchbox searchbox-shadow">
-        <InputGroup.Append>
-          <Button  className="border-0" onClick={() => this.search()} variant="outline-secondary">
-            <FontAwesomeIcon icon={faSearch} />
+        <InputGroup.Append className="searchbox-iconwrapper">
+          <Button  className="border-0 searchbox-icon" onClick={() => this.search()} variant="outline-light">            
           </Button>
         </InputGroup.Append>
         <FormControl className="border-0 searchbox-maininput"
@@ -73,6 +72,7 @@ export default class SearchPageComponent extends Component {
           onChange={this.handleChange}
           placeholder={placeholderMsg}
           aria-label={placeholderMsg}
+          type='search'
           aria-describedby="basic-addon"
           onKeyPress={event => {
             if (event.key === "Enter") {

@@ -107,7 +107,13 @@ export default class SearchResultWidget extends Component {
     }
     else {
       if(this.state.queryResults) {
-        hits = this.state.queryResults.hits.hits.map((item,key) => <div className="search-result-block" key={item._source.label}> <div className="search-result-label">{item._source.label} </div><div className="search-uri"> Loc-I ID: <Link to={`/resource?id=${item._source.uri}`}>{item._source.uri}</Link></div></div>);
+        hits = this.state.queryResults.hits.hits.map((item,key) => (
+                  <div className="search-result-block" key={item._source.label}> 
+                    <div className="search-result-label">{item._source.label} </div>
+                    <div className="search-uri"> Loc-I ID: <a href={item._source.uri} target='other'>{item._source.uri}</a></div>
+                  </div>
+                )
+              );
       }
   
       divToDisplay = (<div>
