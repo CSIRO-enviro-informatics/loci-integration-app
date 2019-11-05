@@ -18,7 +18,7 @@ import Datasets from "./components/Datasets"
 import Locations from "./components/Locations"
 import Linksets from "./components/Linksets"
 import Resource from "./components/Resource"
-import SearchComponent from "./components/Search";
+import SearchPageComponent from "./components/SearchPageComponent";
 
 export default function App() {
   
@@ -60,7 +60,7 @@ export default function App() {
             <About />
           </Route>
           <Route path="/search">
-            <SearchComponent />
+            <SearchPageComponent />
           </Route>
           <Route path="/datasets">
             <Datasets />

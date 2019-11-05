@@ -13,7 +13,7 @@ import Button from "react-bootstrap/Button";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-export default class SearchComponent extends Component {
+export default class SearchPageComponent extends Component {
   constructor(props) {
     super(props)
 

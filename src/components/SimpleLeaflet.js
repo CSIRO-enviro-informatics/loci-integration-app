@@ -16,7 +16,8 @@ export default class SimpleLeaflet extends Component {
         lng: 133.7751      
       },
       zoom: 5,
-      inputRefFn: props.inputRef
+      inputRefFn: props.inputRef,
+      pointSelectCallback: props.pointSelectCallback
     };    
   }
 
@@ -36,6 +37,7 @@ export default class SimpleLeaflet extends Component {
     }
     console.log(this.state);
     this.state.inputRefFn(this.state.latlng);
+    this.state.pointSelectCallback(e);
     
   }
 
