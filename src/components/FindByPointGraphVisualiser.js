@@ -38,7 +38,18 @@ export default class FindByPointGraphVisualiser extends Component {
       //Initializing chart
       const chart = d3.select('.chart')
         .attr('width', width)
-        .attr('height', height);
+        .attr('height', height)
+        ;        
+      
+      //add encompassing group for the zoom 
+      var g = chart.append("g")
+      .attr("class", "everything");
+
+      chart.call(d3.zoom().on("zoom", function () {
+        g.attr("transform", d3.event.transform)
+      }))
+      .on("dblclick.zoom", null);
+      
       
       //Creating tooltip
       //const tooltip = d3.select('.graphcontainer')
@@ -82,14 +93,14 @@ export default class FindByPointGraphVisualiser extends Component {
       }
       
       //Creating links
-      const link = chart.append('g')
+      const link = g.append('g')
         .attr('class', 'links')
         .selectAll('line')
         .data(data.links).enter()
         .append('line');
       
       //Creating nodes
-      const node =  chart.append('g')
+      const node =  g.append('g')
         .attr('class', 'node')
         .selectAll('circle')
         .data(data.nodes).enter(function(d){
