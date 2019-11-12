@@ -9,6 +9,7 @@ import SimpleLeaflet from "./SimpleLeaflet"
 import FindByPointResults from "./FindByPointResults"
 import SearchInputWidget from "./SearchInputWidget"
 import SearchResultWidget from './SearchResultWidget';
+import MainPageResultComponent from './MainPageResultComponent';
 
 export default class FindByPointComponent extends Component {
   constructor(props) {
@@ -21,7 +22,8 @@ export default class FindByPointComponent extends Component {
       searchMode: false,
       jsonResults: {},
       findByPointMode: false,
-      searchQuery: ""
+      searchQuery: "",
+      curr_location_uri: null
     }
     this.updateResult = this.updateResult.bind(this);
 
@@ -108,8 +110,7 @@ export default class FindByPointComponent extends Component {
   performSearch = (searchQuery) => {
     //this.setState({message: childData})
     this.setState({
-      searchMode: true,
-      findByPointMode: false,
+      resultsMode: "SEARCH",
       searchQuery: searchQuery
     });
   }
@@ -117,12 +118,18 @@ export default class FindByPointComponent extends Component {
 
   performFindAtPoint = (d) => {
     this.setState({
-      searchMode: false,
-      findByPointMode: true      
+      resultsMode: "FIND_AT_POINT",
     });
   }
 
  
+  renderResultSummaryFn = (uri) => {
+    //this.setState({message: childData})
+    this.setState({
+      resultsMode: "RESULT_SUMMARY",
+      curr_location_uri: uri
+    });
+  }
 
   render() {
     var ll = null;
@@ -135,9 +142,19 @@ export default class FindByPointComponent extends Component {
       numLoc = this.state.num_locations;
     }
 
-    var searchOrFindByPointResultComponent = (this.state.searchMode) 
-            ? (<SearchResultWidget query={this.state.searchQuery} />) : 
-              (<FindByPointResults latlng={ll} locations={locations} count={numLoc} />) ;
+    var componentToLoad;
+    if (this.state.resultsMode == "SEARCH") {
+      componentToLoad = (<SearchResultWidget renderResultSummaryFn={this.renderResultSummaryFn} query={this.state.searchQuery} />) 
+    } 
+    else if (this.state.resultsMode == "FIND_AT_POINT") {
+      componentToLoad = (<FindByPointResults latlng={ll} locations={locations} count={numLoc} renderResultSummaryFn={this.renderResultSummaryFn}/>)
+    }
+    else if (this.state.resultsMode == "RESULT_SUMMARY") {
+      componentToLoad = (<MainPageResultComponent location_uri={this.state.curr_location_uri} renderResultSummaryFn={this.renderResultSummaryFn}/>)
+    }
+    else { //default is an empty div
+      componentToLoad = (<div></div>)
+    }
 
     return (
       <Container fluid='true'>
@@ -154,7 +171,7 @@ export default class FindByPointComponent extends Component {
             </Row>
             <Row>
               <Col sm={12}>
-                 {searchOrFindByPointResultComponent}
+                 {componentToLoad}
               </Col>
             </Row>
           </Col>

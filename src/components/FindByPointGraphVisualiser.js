@@ -10,7 +10,8 @@ export default class FindByPointGraphVisualiser extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      graphData: this.props.graphData
+      graphData: this.props.graphData,
+      callback: this.props.callback
     }
   }
   
@@ -110,15 +111,19 @@ export default class FindByPointGraphVisualiser extends Component {
         .append('circle')
         .attr('r', 5)
         .attr('class', function(d){
-            if(d.name == "root") {
+            if(d.name == "root" || ('class' in d && d.class == "root")) {
               return 'root';
             }
-            if(d.label == 'within'){
+            if(d.label == 'within' || ('class' in d && d.class == "within")){
               return 'within'
             }
-            if(d.label == 'overlap'){
+            if(d.label == 'overlap'|| ('class' in d && d.class == "overlap")){
               return 'overlap'
             }
+            if(d.label == 'contain'|| ('class' in d && d.class == "contain")){
+              return 'contain'
+            }
+
             return 'graphnode';
         })
         .call(d3.drag()
@@ -150,6 +155,12 @@ export default class FindByPointGraphVisualiser extends Component {
           d3.event.preventDefault();
           console.log("Double click");
           console.log(d);
+
+          if(d.label.match(/^http[s]*:\/\//) != null) {
+            if(this.state.callback) {
+              this.state.callback(d.label);
+            }  
+          }
         });
       
       //Setting location when ticked

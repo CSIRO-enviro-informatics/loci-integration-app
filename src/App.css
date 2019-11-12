@@ -100,6 +100,11 @@ span.logo {
 
 }
 
+.search-result-label:hover  {
+  color: blue;
+  font-weight: 500;
+}
+
 
 /* D3 stuff */
 
@@ -122,19 +127,25 @@ span.logo {
 }
 
 circle.root {
-  stroke: red;
-  fill: red;
+  stroke: #d55e00;
+  fill: #d55e00;
 }
 
 circle.within {
-  stroke: blue;
-  fill: blue;
+  stroke: #0072b2	;
+  fill: #0072b2	;
 }
 
 circle.overlap {
-  stroke: green;
-  fill: green;
+  stroke: #009e73;
+  fill: #009e73;
 }
+
+circle.contain{
+  stroke: black;
+  fill: #f0e442	;
+}
+
 
 .searchbox {
   margin-left: 5px;
@@ -178,4 +189,8 @@ circle.overlap {
 
 .searchbox-iconwrapper {
   margin: 5px 5px 5px 5px !important;
+}
+
+.summaryResultTitle {
+  padding-bottom: 10px;
 }
