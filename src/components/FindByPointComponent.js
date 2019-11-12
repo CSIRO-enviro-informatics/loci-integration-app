@@ -142,19 +142,18 @@ export default class FindByPointComponent extends Component {
       numLoc = this.state.num_locations;
     }
 
-    var searchOrFindByPointResultComponent;
+    var componentToLoad;
     if (this.state.resultsMode == "SEARCH") {
-      searchOrFindByPointResultComponent = (<SearchResultWidget renderResultSummaryFn={this.renderResultSummaryFn} query={this.state.searchQuery} />) 
+      componentToLoad = (<SearchResultWidget renderResultSummaryFn={this.renderResultSummaryFn} query={this.state.searchQuery} />) 
     } 
     else if (this.state.resultsMode == "FIND_AT_POINT") {
-      searchOrFindByPointResultComponent = (<FindByPointResults latlng={ll} locations={locations} count={numLoc} renderResultSummaryFn={this.renderResultSummaryFn}/>)
+      componentToLoad = (<FindByPointResults latlng={ll} locations={locations} count={numLoc} renderResultSummaryFn={this.renderResultSummaryFn}/>)
     }
     else if (this.state.resultsMode == "RESULT_SUMMARY") {
-      searchOrFindByPointResultComponent = (<MainPageResultComponent location_uri={this.state.curr_location_uri} renderResultSummaryFn={this.renderResultSummaryFn}/>)
+      componentToLoad = (<MainPageResultComponent location_uri={this.state.curr_location_uri} renderResultSummaryFn={this.renderResultSummaryFn}/>)
     }
-
-    else { //assume RESULT_SUMMARY mode
-      searchOrFindByPointResultComponent = (<div></div>)
+    else { //default is an empty div
+      componentToLoad = (<div></div>)
     }
 
     return (
@@ -172,7 +171,7 @@ export default class FindByPointComponent extends Component {
             </Row>
             <Row>
               <Col sm={12}>
-                 {searchOrFindByPointResultComponent}
+                 {componentToLoad}
               </Col>
             </Row>
           </Col>
