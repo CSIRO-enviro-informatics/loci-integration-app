@@ -127,23 +127,23 @@ span.logo {
 }
 
 circle.root {
-  stroke: red;
-  fill: red;
+  stroke: #d55e00;
+  fill: #d55e00;
 }
 
 circle.within {
-  stroke: blue;
-  fill: blue;
+  stroke: #0072b2	;
+  fill: #0072b2	;
 }
 
 circle.overlap {
-  stroke: green;
-  fill: green;
+  stroke: #009e73;
+  fill: #009e73;
 }
 
 circle.contain{
   stroke: black;
-  fill: goldenrod;
+  fill: #f0e442	;
 }
 
 
