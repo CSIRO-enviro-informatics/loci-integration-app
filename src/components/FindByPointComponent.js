@@ -147,10 +147,10 @@ export default class FindByPointComponent extends Component {
       searchOrFindByPointResultComponent = (<SearchResultWidget renderResultSummaryFn={this.renderResultSummaryFn} query={this.state.searchQuery} />) 
     } 
     else if (this.state.resultsMode == "FIND_AT_POINT") {
-      searchOrFindByPointResultComponent = (<FindByPointResults latlng={ll} locations={locations} count={numLoc} />)
+      searchOrFindByPointResultComponent = (<FindByPointResults latlng={ll} locations={locations} count={numLoc} renderResultSummaryFn={this.renderResultSummaryFn}/>)
     }
     else if (this.state.resultsMode == "RESULT_SUMMARY") {
-      searchOrFindByPointResultComponent = (<MainPageResultComponent location_uri={this.state.curr_location_uri}/>)
+      searchOrFindByPointResultComponent = (<MainPageResultComponent location_uri={this.state.curr_location_uri} renderResultSummaryFn={this.renderResultSummaryFn}/>)
     }
 
     else { //assume RESULT_SUMMARY mode

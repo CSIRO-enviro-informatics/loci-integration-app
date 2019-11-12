@@ -100,6 +100,11 @@ span.logo {
 
 }
 
+.search-result-label:hover  {
+  color: blue;
+  font-weight: 500;
+}
+
 
 /* D3 stuff */
 
@@ -135,6 +140,12 @@ circle.overlap {
   stroke: green;
   fill: green;
 }
+
+circle.contain{
+  stroke: black;
+  fill: goldenrod;
+}
+
 
 .searchbox {
   margin-left: 5px;
@@ -178,4 +189,8 @@ circle.overlap {
 
 .searchbox-iconwrapper {
   margin: 5px 5px 5px 5px !important;
+}
+
+.summaryResultTitle {
+  padding-bottom: 10px;
 }
