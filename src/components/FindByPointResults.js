@@ -223,7 +223,7 @@ export default class FindByPointResults extends Component {
     var validArrDivsOrBlank = (arrDivs.length > 0) ?
       (
         <div>
-            <div><FindByPointGraphVisualiser graphData={graphData} /></div>
+            <div><FindByPointGraphVisualiser graphData={graphData} /></div> 
             {arrDivs}
             </div>        
       )

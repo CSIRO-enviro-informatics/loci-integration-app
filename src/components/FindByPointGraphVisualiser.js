@@ -22,9 +22,8 @@ export default class FindByPointGraphVisualiser extends Component {
       this.setState({
         graphData: this.props.graphData
       });
-      d3.selectAll("svg > *").remove();
-      d3.selectAll(".graphtooltip").remove();
-
+      d3.selectAll(".graphcontainer svg > *").remove();
+      d3.selectAll(".graphcontainer .graphtooltip").remove();
     }
 
   }
