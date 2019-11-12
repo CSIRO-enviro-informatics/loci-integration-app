@@ -20,6 +20,7 @@ export default class FindByPointComponent extends Component {
       locations: {},
       num_locations: 0,
       searchMode: false,
+      jsonResults: {},
       findByPointMode: false,
       searchQuery: "",
       curr_location_uri: null
@@ -90,6 +91,7 @@ export default class FindByPointComponent extends Component {
       .then(
         (result) => {
           this.setState({
+            jsonResults: result,
             queryResults: this.formatResults(result)
           });
           console.log(result);
@@ -159,7 +161,7 @@ export default class FindByPointComponent extends Component {
       <Container fluid='true'>
         <Row>
           <Col sm={6}>
-            <SimpleLeaflet inputRef={this.testFn} pointSelectCallback={this.performFindAtPoint}/>
+            <SimpleLeaflet jsonSearchResults={this.state.jsonResults} inputRef={this.testFn} pointSelectCallback={this.performFindAtPoint}/>
           </Col>
           <Col sm={6}>
             <Row>
