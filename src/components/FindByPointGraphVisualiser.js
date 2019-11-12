@@ -130,7 +130,14 @@ export default class FindByPointGraphVisualiser extends Component {
           console.log(d.label);
           console.log(d.name);
           console.log(d3.event.pageX);
-          graphconsole.html(d.label);
+          graphconsole.html(
+            function() {
+              if(d.label && d.label.match(/^http[s]*:\/\//) != null) {
+                return '<a target="out" href="' + d.label + '">' + d.label + "</a>";
+              } 
+              return d.label
+            }
+            );
           //tooltip.html(d.label)
           //  .style('left', d3.event.pageX - 1000 +'px')
           //  .style('top', d3.event.pageY  + 'px')
