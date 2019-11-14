@@ -116,9 +116,11 @@ span.logo {
 
 .graphtooltip {
   position: absolute;
-  background-color: blue;
+  background-color: #b6dbff;
   padding: 10px;
   z-index:10000;
+  border-radius: 5px;
+
 }
 
 .nodes circle {
