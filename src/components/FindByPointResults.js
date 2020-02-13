@@ -20,7 +20,8 @@ export default class FindByPointResults extends Component {
       isLoading: false,
       latlng: this.props.latlng,
       contextLocationLookups: {},
-      graphData: {}
+      graphData: {},
+      currGeom: undefined
     }
     this.updateWithins = this.updateWithins.bind(this);
     this.updateLocations = this.updateLocations.bind(this);
@@ -105,6 +106,40 @@ export default class FindByPointResults extends Component {
       graphData: g
     });
   }
+  handleViewGeomClick(e, geom_uri) {
+    console.log('this is:', e);
+    console.log('geometry uri:', geom_uri);
+    //this.setState({
+    //  currGeom: geom_uri
+    //});
+
+    //lookup geom and call update leaflet function with uri
+    
+    var geom_svc_headers = new Headers();
+    geom_svc_headers.append('Accept', 'application/json');
+    var here = this;
+    fetch(geom_uri, {       
+      headers: geom_svc_headers })
+        .then(response => {
+          console.log(response);
+          return response.json()
+        })
+        .then(data => {
+          console.log(data);
+          here.props.renderSelectedGeometryFn(data);
+        }
+        )
+        .catch(error => 
+          { 
+            //this.setState({ error, isLoading: false });
+            console.log("Error getting ", geom_uri);
+            console.log(error)
+          }
+          );
+          
+    
+
+  }
 
   render() {
     const labelMapping = {
@@ -135,20 +170,18 @@ export default class FindByPointResults extends Component {
       'children': []
     };
 
-    Object.keys(this.props.locations).map((loc_type_key, index) => {
-      var c = {
-        'name': loc_type_key,
-        'label': labelMapping[loc_type_key],
-        'children': []
-      };
-
-      //iterate through uris
-      Object.keys(contextLocationLookups).map((uri, index) => {
-        if (
-          (loc_type_key == 'cc' && uri.includes("contractedcatchment"))
-          ||
-          (loc_type_key == 'mb' && uri.includes("meshblock"))
-        ) {
+    if(this.props.locations != 'errorMessage' && 'res' in this.props.locations) {
+      this.props.locations.res.forEach(
+        (resItem, index) => {
+        var dataset_label = resItem['dataset'];
+        var uri = resItem['feature'];
+        var c = {
+          'name': dataset_label,
+          'label': dataset_label,
+          'children': []
+        };
+  
+        
           var node = {
             'name': uri,
             'label': uri,
@@ -159,8 +192,8 @@ export default class FindByPointResults extends Component {
             'label': "within",
             'children': []
           };
-
-          if ('within' in contextLocationLookups[uri]) {
+  
+          if (uri in contextLocationLookups && 'within' in contextLocationLookups[uri]) {
             contextLocationLookups[uri]['within'].locations.forEach(item => {
               withinChild.children.push({
                 'name': item,
@@ -169,13 +202,13 @@ export default class FindByPointResults extends Component {
               });
             });
           }
-
+  
           var overlapChild = {
             'name': uri + "-overlap",
             'label': "overlap",
             'children': []
           };
-          if ('overlap' in contextLocationLookups[uri]) {
+          if (uri in contextLocationLookups && 'overlap' in contextLocationLookups[uri]) {
             contextLocationLookups[uri]['overlap'].overlaps.forEach(item => {
               overlapChild.children.push({
                 'name': item.uri,
@@ -184,42 +217,53 @@ export default class FindByPointResults extends Component {
               });
             });
           }
-
-          node.children.push(withinChild)
-          node.children.push(overlapChild)
-
+  
+          if(withinChild['children'].length > 0) {
+            node.children.push(withinChild);
+          }          
+          if(overlapChild['children'].length > 0) {
+            node.children.push(overlapChild);
+          }
+  
           c['children'].push(node);
-        }
+        
+          
+  
+        rootObj['children'].push(c);
+      });
+  
+    }
 
-      })
-
-
-      rootObj['children'].push(c);
-    });
     console.log(rootObj);
     graphData = this.convertTreeObjToD3Data(null, rootObj, graphData, {});
     console.log(graphData);
 
     var here = this;
-    var arrDivs = Object.keys(this.props.locations).map((key, index) => (
-      <div key={index}>
-        <p > {labelMapping[key]} </p>
-        <ul>
-          {
-            this.props.locations[key].map(function (uri, index) {
-              return (
-                <li key={index}>
-                  <a href={uri}>{uri}</a>
-                  <FindByPointWithinsResults locationUri={uri} parentCallback={here.callbackFunction} />
-                  <FindByPointOverlapResults locationUri={uri} parentCallback={here.callbackFunction} />
-                </li>
-              );
-            })
-          }
-        </ul>
-      </div>
-    ));
+    //change this to iterate through a list rather than a location dict obj
+    var arrDivs = [];
+    if(this.props.locations != 'errorMessage' && 'res' in this.props.locations) {
+      this.props.locations['res'].forEach(function(item, index) {
+        console.log(item);
+      });
+      var resultsDiv = this.props.locations.res.forEach(function(item, index) {
+        arrDivs.push( (
+          <div class="mainPageResultListItem" key={index}>
+            <div>
+                Feature: <a href={item['feature']}>{item['feature']}</a> 
+                <button onClick={(e) => here.handleViewGeomClick(e, item['geometry'])}>
+                  View Geometry
+                </button>
+                <br/>Dataset: {item['dataset']}
+                      <FindByPointWithinsResults locationUri={item['feature']} parentCallback={here.callbackFunction} />
+                      <FindByPointOverlapResults locationUri={item['feature']} parentCallback={here.callbackFunction} />
+                
+            </div>
+          </div>
+        ));
+      });        
+    }
 
+  
     var validArrDivsOrBlank = (arrDivs.length > 0) ?
       (
         <div>

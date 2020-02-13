@@ -31,6 +31,16 @@ export default class SimpleLeaflet extends Component {
   mapRef = createRef();
   old_url = "";
 
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.geometryGeojson !== this.state.geojson) {
+        this.setState({
+          geojson: this.props.geometryGeojson,
+          hasBoundary: true
+        });
+    }
+    
+  }
+
   handleClick = e => {
     const map = this.mapRef.current;
     console.log("click");
@@ -68,9 +78,23 @@ export default class SimpleLeaflet extends Component {
     this.state.pointSelectCallback(e);
   };
 
+  //assume jsonData is a geojson geometry
   createBoundaries = jsonData => {
     console.log(jsonData)
-    if (!('locations' in jsonData))
+    
+    if(jsonData != this.state.jsonData) {
+      this.setState({
+        geojson: jsonData,
+        hasBoundary: true
+      }); 
+    }
+
+    
+  };
+
+  oldCreateBoundaries = jsonData => {
+    console.log(jsonData)
+    if (!('locations' in jsonData) || jsonData['locations'] == "errorMessage")
     {
       return
     }
@@ -79,7 +103,7 @@ export default class SimpleLeaflet extends Component {
       var ccUri = jsonData["locations"]["cc"][0];
       var splitCCUri = ccUri.split("/");
       var id = splitCCUri[splitCCUri.length - 1];
-      var processedUrl = `https://cors-anywhere.herokuapp.com/https://geofabricld.net/contractedcatchment/${id}?_view=hyfeatures&_format=application/ld+json`;
+      var processedUrl = `https://cors-anywhere.herokuapp.com/https://geofabricld.net/contractedcatchment/${id}?_view=geofabric&_format=application/ld+json`;
     } 
     
     console.log(processedUrl)
@@ -98,31 +122,56 @@ export default class SimpleLeaflet extends Component {
       .then(
         res => {
           console.log(res);
-          jsonld.frame(res, frame, (err, framed) => {
-            var xml_gml_data =
-              framed["@graph"][0]["http://www.opengis.net/ont/geosparql#asGML"][
-                "@value"
-              ];
-            const reader = XmlReader.create();
-            reader.on("done", data => {
-              var some_geojson = parseGmlPolygon(data, {
-                transformCoords: (x, y) => [y, x],
-                stride: 2
+          
+          if("@id" in res[0]) {
+            console.log("Got the ID of the geom");
+            console.log(res[0]["@id"]);
+          }
+
+          jsonld.flatten(res, (err, flattened) => {
+            console.log("flattened json-ld");
+            console.log(flattened);
+          });
+          
+
+          jsonld.frame(res, frame, (err, framed) => {            
+            console.log(framed);
+
+            if("http://www.opengis.net/ont/geosparql#hasGeometry" in framed["@graph"][0]) {
+              var geom_uri =
+                framed["@graph"][0]["http://www.opengis.net/ont/geosparql#hasGeometry"]["@id"];
+              console.log(geom_uri);
+                
+            }
+            else if("http://www.opengis.net/ont/geosparql#asGML" in framed["@graph"][0]) {
+              var xml_gml_data =
+                framed["@graph"][0]["http://www.opengis.net/ont/geosparql#asGML"][
+                  "@value"
+                ];
+              const reader = XmlReader.create();
+              reader.on("done", data => {
+                var some_geojson = parseGmlPolygon(data, {
+                  transformCoords: (x, y) => [y, x],
+                  stride: 2
+                });
+                console.log(some_geojson);
+                some_geojson = reproject.reproject(
+                  some_geojson,
+                  epsg["EPSG:4283"],
+                  epsg["EPSG:4326"]
+                );
+                console.log(some_geojson);
+                this.setState({
+                  geojson: some_geojson,
+                  hasBoundary: true
+                });
+                console.log("set_state");
               });
-              console.log(some_geojson);
-              some_geojson = reproject.reproject(
-                some_geojson,
-                epsg["EPSG:4283"],
-                epsg["EPSG:4326"]
-              );
-              console.log(some_geojson);
-              this.setState({
-                geojson: some_geojson,
-                hasBoundary: true
-              });
-              console.log("set_state");
-            });
-            reader.parse(xml_gml_data);
+              reader.parse(xml_gml_data);  
+            }
+
+
+
           });
         },
         // Note: it's important to handle errors here
@@ -145,9 +194,7 @@ export default class SimpleLeaflet extends Component {
   };
 
   render() {
-    if (this.props.jsonSearchResults) {
-      this.createBoundaries(this.props.jsonSearchResults);
-    }
+   
     const marker = this.state.hasLocation ? (
       <Marker position={this.state.latlng}>
         <Popup> You clicked here </Popup>{" "}
