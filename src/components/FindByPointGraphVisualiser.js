@@ -50,12 +50,13 @@ export default class FindByPointGraphVisualiser extends Component {
       }))
       .on("dblclick.zoom", null);
       
-      
+
       //Creating tooltip
-      //const tooltip = d3.select('.graphcontainer')
-      //  .append('div')
-       // .attr('class', 'graphtooltip')
-       // .html('Tooltip');
+      const tooltip = d3.select('.graphcontainer')
+        .append('div')
+        .attr('class', 'graphtooltip')
+        .style('opacity', 0)
+        .html('Tooltip');
 
       const graphconsole = d3.select('.graphconsole');
       
@@ -87,9 +88,6 @@ export default class FindByPointGraphVisualiser extends Component {
         if (!d3.event.active) simulation.alphaTarget(0);
         d.fx = null;
         d.fy = null;
-       
-
-        
       }
       
       //Creating links
@@ -130,7 +128,7 @@ export default class FindByPointGraphVisualiser extends Component {
            .on('start', dragStart)
            .on('drag', drag)
            .on('end', dragEnd)
-        ).on('mouseover', d => {
+        ).on('mouseover', (d,i) => {
           console.log(d.label);
           console.log(d.name);
           console.log(d3.event.pageX);
@@ -142,14 +140,16 @@ export default class FindByPointGraphVisualiser extends Component {
               return d.label
             }
             );
-          //tooltip.html(d.label)
-          //  .style('left', d3.event.pageX - 1000 +'px')
-          //  .style('top', d3.event.pageY  + 'px')
-          //  .style('opacity', .9);
-        }).on('mouseout', () => {
-        //  tooltip.style('opacity', 0)
-        //    .style('left', '0px')
-        //    .style('top', '0px');
+            
+          tooltip.html(d.label)
+            .style('left', (d.x + 20)  +'px')
+            .style('top', (d.y + 40 )  + 'px')
+            .style('opacity', .9);
+        }).on('mouseout', (d,i) => {
+          tooltip.style('opacity', 0)
+            .style('left', '0px')
+            .style('top', '0px');
+          //d3.select("#t" + d.x + "-" + d.y + "-" + i).remove();  // Remove text location
 
         }).on('dblclick',d => {
           d3.event.preventDefault();

@@ -90,20 +90,6 @@ span.logo {
   color: white;
 }
 
-.search-result-block {
-  padding-top: 5px;
-  padding-bottom: 10px;
-}
-
-.search-result-label {
-  font-style: oblique;
-
-}
-
-.search-result-label:hover  {
-  color: blue;
-  font-weight: 500;
-}
 
 
 /* D3 stuff */
@@ -116,9 +102,11 @@ span.logo {
 
 .graphtooltip {
   position: absolute;
-  background-color: blue;
+  background-color: #b6dbff;
   padding: 10px;
   z-index:10000;
+  border-radius: 5px;
+
 }
 
 .nodes circle {
@@ -193,4 +181,29 @@ circle.contain{
 
 .summaryResultTitle {
   padding-bottom: 10px;
+}
+
+.search-result-block {
+  padding-top: 5px;
+  padding-bottom: 20px;
+}
+
+.search-result-label {
+  font-style: oblique;
+  font-weight: 600;
+}
+
+.search-result-view {  
+}
+
+.search-result-view:hover  {
+  color: blue;
+  font-weight: 500;
+}
+
+.search-result-links {
+  padding-top: 2px;
+}
+.search-result-links .btn-toolbar > *  {
+  margin-right: 5px;
 }

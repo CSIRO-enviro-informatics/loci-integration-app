@@ -10,6 +10,7 @@ import Row from "react-bootstrap/Row";
 import InputGroup from "react-bootstrap/InputGroup";
 import FormControl from "react-bootstrap/FormControl";
 import Button from "react-bootstrap/Button";
+import ButtonToolbar from "react-bootstrap/ButtonToolbar";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
@@ -114,8 +115,13 @@ export default class SearchResultWidget extends Component {
       if(this.state.queryResults) {
         hits = this.state.queryResults.hits.hits.map((item,key) => (
                   <div className="search-result-block" key={item._source.label}> 
-                    <div className="search-result-label" onClick={() => this.run_callback(item)}>{item._source.label} </div>
-                    <div className="search-uri"> Loc-I ID: <a href={item._source.uri} target='other'>{item._source.uri}</a></div>
+                    <div className="search-result-label">{item._source.label} &nbsp; </div>
+                    <div className="search-result-links"> 
+                        <ButtonToolbar>
+                          <Button variant="outline-primary" size="sm" onClick={() => this.run_callback(item)}>View in Loc-I Explorer</Button>
+                          <Button variant="outline-primary" size="sm" href={item._source.uri} target='other'>Loc-I ID</Button>
+                        </ButtonToolbar>
+                    </div>
                   </div>
                 )
               );
