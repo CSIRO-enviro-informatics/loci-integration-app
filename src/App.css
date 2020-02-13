@@ -183,7 +183,6 @@ circle.contain{
   padding-bottom: 10px;
 }
 
-<<<<<<< HEAD
 .mainPageResultListItem {
   border: 1px solid black;
   padding-left: 5px;
@@ -200,7 +199,6 @@ circle.contain{
   /* Opera 10.5, IE 9, Safari 5, Chrome, Firefox 4, iOS 4, Android 2.1+ */
   border-radius: 5px; 
 }
-=======
 .search-result-block {
   padding-top: 5px;
   padding-bottom: 20px;
@@ -225,4 +223,3 @@ circle.contain{
 .search-result-links .btn-toolbar > *  {
   margin-right: 5px;
 }
->>>>>>> 9080f9eb4ccbb82aee1a087d4b31b6030c35d76e
