@@ -11,12 +11,11 @@ export default class FindByPointGraphVisualiser extends Component {
     super(props);
     this.state = {
       graphData: this.props.graphData,
-      callback: this.props.callback
+      callback: this.props.callback,
     }
   }
   
   componentDidMount() {
-    this.updateGraph();
   }
   componentDidUpdate(){
     if(this.state.graphData != this.props.graphData) {
@@ -25,18 +24,19 @@ export default class FindByPointGraphVisualiser extends Component {
       });
       d3.selectAll(".graphcontainer svg > *").remove();
       d3.selectAll(".graphcontainer .graphtooltip").remove();
+      this.updateGraph(this.props.graphData);
     }
 
   }
-  updateGraph() {
-    const data = this.state.graphData;
-    
-      
+  updateGraph(data) {
+    //const data = this.state.graphData;
       const width = 640,
             height = 480;
       
       //Initializing chart
-      const chart = d3.select('.chart')
+      //d3.select('.chart').html(null);
+      //const chart = d3.select('.chart')
+      const chart = d3.select(this.refs.thechart)
         .attr('width', width)
         .attr('height', height)
         ;        
@@ -219,20 +219,18 @@ export default class FindByPointGraphVisualiser extends Component {
         .id(function(d) { return d.name; })
 
       simulation.force("links",link_force)
+       
       
-        
   }
   
   render() {
-    var graphData = this.state.graphData;
-    console.log(graphData);
-    this.updateGraph();
+    
     return (
       <div className='graphcontainer'>
         <div className="graphconsole"></div>
         <div className='chartContainer'>
-          <svg className='chart'>
-          </svg>
+          <svg ref="thechart" 
+          ></svg>
         </div>
       </div>
     ); 

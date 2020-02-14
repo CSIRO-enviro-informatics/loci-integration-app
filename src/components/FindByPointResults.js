@@ -155,10 +155,12 @@ export default class FindByPointResults extends Component {
         here.addJobToQueue(withinJobId, {});
         var overlapJobId = index + "-overlap";
         here.addJobToQueue(overlapJobId, {});
-        here.state.isGraphLoading = true;
+        here.setState({
+          isGraphLoading: true
+        });
 
         arrDivs.push( (
-          <div class="mainPageResultListItem" key={index}>
+          <div className="mainPageResultListItem" key={index}>
             <div>
                 Feature: <a href={item['feature']}>{item['feature']}</a> 
                 <Button variant="outline-primary" size="sm" onClick={(e) => here.handleViewGeomClick(e, item['geometry'])}>
@@ -305,7 +307,7 @@ export default class FindByPointResults extends Component {
     var geom_svc_headers = new Headers();
     geom_svc_headers.append('Accept', 'application/json');
     var here = this;
-    if('?' in geom_uri) {
+    if(geom_uri.indexOf("?") > -1) {
       geom_uri = geom_uri + "&_view=simplifiedgeom"
     }
     else {
@@ -373,9 +375,9 @@ export default class FindByPointResults extends Component {
     console.log(this.state.jobqueue);
 
     return (
-      <Container>
+      <Container className="h-100" >
         <Row>
-          <Col sm={12}>
+          <Col sm={12} className="fullheight-results">
 
 
             {message}
