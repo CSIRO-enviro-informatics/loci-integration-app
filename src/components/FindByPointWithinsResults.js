@@ -68,22 +68,32 @@ export default class FindByPointWithinsResults extends Component {
             isLoading: false
           });
           console.log(result);
-          this.props.parentCallback(uri, "within", result);
+          this.props.parentCallback(uri, "within", result, this.props.jobid);
         },
         // Note: it's important to handle errors here
         // instead of a catch() block so that we don't swallow
         // exceptions from actual bugs in components.
         (error) => {
+          this.props.errorCallback(error, this.props.jobid);
           this.setState({
             error
           });
         }
       )
+      .finally( () => {
+        console.log("finally: " + this.props.jobid);
+        if (typeof this.props.errorCallback === "function") {
+          this.props.errorCallback("", this.props.jobid);
+        }
+        else {
+          console.log (typeof this.props.errorCallback);
+        }
+      })
   }
 
   renderWithins(withinsObj) {
-    console.log("renderWithins")
-    console.log(withinsObj)
+    //console.log("renderWithins")
+    //console.log(withinsObj)
 
     if (withinsObj) {
       return (<ul> {

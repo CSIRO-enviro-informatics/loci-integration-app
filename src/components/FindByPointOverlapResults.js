@@ -74,6 +74,8 @@ export default class FindByPointOverlapResults extends Component {
       }
     Object.keys(params).forEach(key => url.searchParams.append(key, params[key]))
     console.log(url);
+    var here = this;
+    var errCallback = this.props.errorCallback;
     fetch(url)
       .then(res => res.json())
       .then(
@@ -84,23 +86,39 @@ export default class FindByPointOverlapResults extends Component {
             isLoading: false
           });
           console.log(result);
-          this.props.parentCallback(uri, "overlap", result);
+          this.props.parentCallback(uri, "overlap", result, this.props.jobid);
 
         },
         // Note: it's important to handle errors here
         // instead of a catch() block so that we don't swallow
         // exceptions from actual bugs in components.
         (error) => {
+          this.props.errorCallback(error, this.props.jobid);
           this.setState({
             error
           });
         }
       )
+      .catch(e => {
+        console.log("caught err: " + this.props.jobid);
+        if ('errorCallback' in this.props) {
+          this.props.errorCallback(e, this.props.jobid);
+        }
+      })
+      .finally( () => {
+        console.log("finally: " + this.props.jobid);
+        if (typeof this.props.errorCallback === "function") {
+          this.props.errorCallback("", this.props.jobid);
+        }
+        else {
+          console.log (typeof this.props.errorCallback);
+        }
+      });
   }
 
   renderoverlaps(overlapsObj) {
-    console.log("renderoverlaps")
-    console.log(overlapsObj)
+    //console.log("renderoverlaps")
+    //console.log(overlapsObj)
 
     if (overlapsObj) {
       return (<ul> {

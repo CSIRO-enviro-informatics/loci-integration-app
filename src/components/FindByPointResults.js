@@ -9,10 +9,13 @@ import FindByPointOverlapResults from './FindByPointOverlapResults'
 import Tabs from "react-bootstrap/Tabs";
 import Tab from "react-bootstrap/Tab";
 import FindByPointGraphVisualiser from './FindByPointGraphVisualiser';
+import Button from "react-bootstrap/Button";
+
 
 export default class FindByPointResults extends Component {
   constructor(props) {
     super(props)
+    var graphData = { "nodes": [], "links": [] };
 
     this.state = {
       locations: this.props.locations,
@@ -20,8 +23,11 @@ export default class FindByPointResults extends Component {
       isLoading: false,
       latlng: this.props.latlng,
       contextLocationLookups: {},
-      graphData: {},
-      currGeom: undefined
+      graphData: graphData,
+      currGeom: undefined,
+      jobqueue: {},
+      isGraphLoading: false,
+      arrDivs: []
     }
     this.updateWithins = this.updateWithins.bind(this);
     this.updateLocations = this.updateLocations.bind(this);
@@ -34,12 +40,40 @@ export default class FindByPointResults extends Component {
 
 
   componentDidUpdate() {
+    var graphData = { "nodes": [], "links": [] };
+
     if (this.props.latlng != this.state.latlng) {
       this.setState({
         latlng: this.props.latlng,
-        contextLocationLookups: {}
+        contextLocationLookups: {},
+        jobqueue: {},
+        graphData: graphData
       });
+      
     }
+
+    if (this.props.locations != this.state.locations) {
+      
+      this.setState({
+        locations: this.props.locations,
+        jobqueue: {},
+        graphData: graphData
+      });         
+      if('res' in this.props.locations) {
+        var arrDivs = this.updateArrDivs(this.props.locations);
+        this.setState({
+          arrDivs: arrDivs
+        })
+      }    
+      
+    }    
+    if(this.state.isGraphLoading == true && Object.keys(this.state.jobqueue).length == 0){
+      this.updateGraphData();
+      this.setState({
+        isGraphLoading: false
+      })
+    } 
+    console.log(this.state.jobqueue);
   }
 
   updateWithins(withins_locations) {
@@ -80,7 +114,7 @@ export default class FindByPointResults extends Component {
     return graphData;
   }
 
-  callbackFunction = (uri, relation, data) => {
+  callbackFunction = (uri, relation, data, jobid) => {
     console.log(uri);
     console.log(relation);
     console.log(data);
@@ -95,16 +129,169 @@ export default class FindByPointResults extends Component {
     }
     curr[uri][relation] = data;
 
-
+    this.removeJobFromQueue(jobid);
     this.setState({
       contextLocationLookups: curr
     })
   }
 
-  updateGraphData = (g) => {
-    this.setState({
-      graphData: g
-    });
+  errorCallback = (errMessage, jobid) => {
+    console.log(errMessage);
+    this.removeJobFromQueue(jobid);
+  }
+
+  updateArrDivs = (locations) => {
+    var arrDivs = [];
+    var here = this;
+    //change this to iterate through a list rather than a location dict obj
+    
+    if(locations && locations != 'errorMessage' && 'res' in locations) {
+      //this.state.locations['res'].forEach(function(item, index) {
+      //  console.log(item);
+      //});
+      
+      var resultsDiv = locations.res.forEach(function(item, index) {
+        var withinJobId = index + "-within";
+        here.addJobToQueue(withinJobId, {});
+        var overlapJobId = index + "-overlap";
+        here.addJobToQueue(overlapJobId, {});
+        here.state.isGraphLoading = true;
+
+        arrDivs.push( (
+          <div class="mainPageResultListItem" key={index}>
+            <div>
+                Feature: <a href={item['feature']}>{item['feature']}</a> 
+                <Button variant="outline-primary" size="sm" onClick={(e) => here.handleViewGeomClick(e, item['geometry'])}>
+                  View Geometry
+                </Button>
+                <br/>Dataset: {item['dataset']}
+                      <FindByPointWithinsResults locationUri={item['feature']} jobid={withinJobId}  errorCallback={here.errorCallback} parentCallback={here.callbackFunction} />
+                      <FindByPointOverlapResults locationUri={item['feature']} jobid={overlapJobId}  errorCallback={here.errorCallback} parentCallback={here.callbackFunction} />
+                
+            </div>
+          </div>
+        ));
+      });        
+    }
+    return arrDivs;
+  }
+
+
+  addJobToQueue = (key, j) => {    
+    if(key in this.state.jobqueue) {
+      //exists in queue!
+      return
+    }
+    else {
+      var newqueue = this.state.jobqueue;
+      newqueue[key] = j;
+      this.setState({
+        jobqueue: newqueue
+      })
+      console.log("added " + key + " from queue");
+    }     
+  }
+  removeJobFromQueue = (key) => {    
+    console.log("removing " + key + " from queue");
+
+    if(key in this.state.jobqueue) {
+      delete this.state.jobqueue[key];
+      console.log("removed " + key + " from queue");
+      console.log()
+    }
+  }
+
+
+  updateGraphData = () => {
+    //this.setState({
+    //  graphData: g
+    //});
+
+    var graphData = { "nodes": [], "links": [] };
+
+    var rootObj = {
+      'name': 'root',
+      'label': 'root',
+      'class': "root",
+      'fixed': true,
+      'children': []
+    };
+    
+
+    if(this.state.locations != 'errorMessage' && 'res' in this.state.locations) {
+      this.state.locations.res.forEach(
+        (resItem, index) => {
+        var dataset_label = resItem['dataset'];
+        var uri = resItem['feature'];
+        var c = {
+          'name': dataset_label,
+          'label': dataset_label,
+          'children': []
+        };
+  
+        
+          var node = {
+            'name': uri,
+            'label': uri,
+            'children': []
+          };
+          var withinChild = {
+            'name': uri + "-within",
+            'label': "within",
+            'children': []
+          };
+  
+          if (uri in this.state.contextLocationLookups && 'within' in this.state.contextLocationLookups[uri]) {
+            this.state.contextLocationLookups[uri]['within'].locations.forEach(item => {
+              withinChild.children.push({
+                'name': item,
+                'label': item,
+                'children': []
+              });
+            });
+          }
+  
+          var overlapChild = {
+            'name': uri + "-overlap",
+            'label': "overlap",
+            'children': []
+          };
+          if (uri in this.state.contextLocationLookups && 'overlap' in this.state.contextLocationLookups[uri]) {
+            this.state.contextLocationLookups[uri]['overlap'].overlaps.forEach(item => {
+              overlapChild.children.push({
+                'name': item.uri,
+                'label': item.uri,
+                'children': []
+              });
+            });
+          }
+  
+          if(withinChild['children'].length > 0) {
+            node.children.push(withinChild);
+          }          
+          if(overlapChild['children'].length > 0) {
+            node.children.push(overlapChild);
+          }
+  
+          c['children'].push(node);
+        
+          
+  
+        rootObj['children'].push(c);
+      });
+  
+    }
+    console.log(this.state.jobqueue);
+    console.log(rootObj);
+    graphData = this.convertTreeObjToD3Data(null, rootObj, graphData, {});
+    console.log(graphData);
+
+    if(graphData != this.state.graphData) {
+      this.setState({
+        graphData: graphData
+      });  
+    }
+
   }
   handleViewGeomClick(e, geom_uri) {
     console.log('this is:', e);
@@ -118,6 +305,12 @@ export default class FindByPointResults extends Component {
     var geom_svc_headers = new Headers();
     geom_svc_headers.append('Accept', 'application/json');
     var here = this;
+    if('?' in geom_uri) {
+      geom_uri = geom_uri + "&_view=simplifiedgeom"
+    }
+    else {
+      geom_uri = geom_uri + "?_view=simplifiedgeom"
+    }
     fetch(geom_uri, {       
       headers: geom_svc_headers })
         .then(response => {
@@ -151,130 +344,33 @@ export default class FindByPointResults extends Component {
     var contextLocationLookups = this.state.contextLocationLookups;
     console.log(contextLocationLookups);
     var message = (<div></div>)
-    if (this.props.locations && Object.keys(this.props.locations).length > 0) {
+    if (this.state.locations && Object.keys(this.state.locations).length > 0) {
       message = (<div><h3>Results</h3></div>)
     }
 
     var pointMessage = (<p></p>)
-    if (this.props.latlng) {
-      pointMessage = (<p>Point selected on map: {this.props.latlng}</p>)
+    if (this.state.latlng) {
+      pointMessage = (<p>Point selected on map: {this.state.latlng}</p>)
     }
 
-    var graphData = { "nodes": [], "links": [] };
+    var gd = this.state.graphData;
+    console.log(gd);
 
-    var rootObj = {
-      'name': 'root',
-      'label': 'root',
-      'class': "root",
-      'fixed': true,
-      'children': []
-    };
 
-    if(this.props.locations != 'errorMessage' && 'res' in this.props.locations) {
-      this.props.locations.res.forEach(
-        (resItem, index) => {
-        var dataset_label = resItem['dataset'];
-        var uri = resItem['feature'];
-        var c = {
-          'name': dataset_label,
-          'label': dataset_label,
-          'children': []
-        };
+    var arrDivs = this.state.arrDivs;
   
-        
-          var node = {
-            'name': uri,
-            'label': uri,
-            'children': []
-          };
-          var withinChild = {
-            'name': uri + "-within",
-            'label': "within",
-            'children': []
-          };
-  
-          if (uri in contextLocationLookups && 'within' in contextLocationLookups[uri]) {
-            contextLocationLookups[uri]['within'].locations.forEach(item => {
-              withinChild.children.push({
-                'name': item,
-                'label': item,
-                'children': []
-              });
-            });
-          }
-  
-          var overlapChild = {
-            'name': uri + "-overlap",
-            'label': "overlap",
-            'children': []
-          };
-          if (uri in contextLocationLookups && 'overlap' in contextLocationLookups[uri]) {
-            contextLocationLookups[uri]['overlap'].overlaps.forEach(item => {
-              overlapChild.children.push({
-                'name': item.uri,
-                'label': item.uri,
-                'children': []
-              });
-            });
-          }
-  
-          if(withinChild['children'].length > 0) {
-            node.children.push(withinChild);
-          }          
-          if(overlapChild['children'].length > 0) {
-            node.children.push(overlapChild);
-          }
-  
-          c['children'].push(node);
-        
-          
-  
-        rootObj['children'].push(c);
-      });
-  
-    }
-
-    console.log(rootObj);
-    graphData = this.convertTreeObjToD3Data(null, rootObj, graphData, {});
-    console.log(graphData);
-
-    var here = this;
-    //change this to iterate through a list rather than a location dict obj
-    var arrDivs = [];
-    if(this.props.locations != 'errorMessage' && 'res' in this.props.locations) {
-      this.props.locations['res'].forEach(function(item, index) {
-        console.log(item);
-      });
-      var resultsDiv = this.props.locations.res.forEach(function(item, index) {
-        arrDivs.push( (
-          <div class="mainPageResultListItem" key={index}>
-            <div>
-                Feature: <a href={item['feature']}>{item['feature']}</a> 
-                <button onClick={(e) => here.handleViewGeomClick(e, item['geometry'])}>
-                  View Geometry
-                </button>
-                <br/>Dataset: {item['dataset']}
-                      <FindByPointWithinsResults locationUri={item['feature']} parentCallback={here.callbackFunction} />
-                      <FindByPointOverlapResults locationUri={item['feature']} parentCallback={here.callbackFunction} />
-                
-            </div>
-          </div>
-        ));
-      });        
-    }
-
-  
+    
     var validArrDivsOrBlank = (arrDivs.length > 0) ?
       (
         <div>
-            <div><FindByPointGraphVisualiser graphData={graphData} callback={this.props.renderResultSummaryFn}/></div> 
+            <div><FindByPointGraphVisualiser graphData={this.state.graphData} callback={this.props.renderResultSummaryFn}/></div> 
             {arrDivs}
             </div>        
       )
       :
       <div></div>;
 
-
+    console.log(this.state.jobqueue);
 
     return (
       <Container>
