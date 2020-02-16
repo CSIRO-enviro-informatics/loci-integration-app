@@ -162,7 +162,7 @@ export default class FindByPointResults extends Component {
         arrDivs.push( (
           <div className="mainPageResultListItem" key={index}>
             <div>
-                Feature: <a href={item['feature']}>{item['feature']}</a> 
+                Feature: <a href={item['feature']}>{item['feature']}</a> <span>&nbsp;</span>
                 <Button variant="outline-primary" size="sm" onClick={(e) => here.handleViewGeomClick(e, item['geometry'])}>
                   View Geometry
                 </Button>
