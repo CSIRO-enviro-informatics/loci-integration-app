@@ -4,37 +4,51 @@ html,body {
   overflow: hidden;
 }
 
+/*
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1340px;
+  }
+}
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1340px;
+  }
+}
+*/
+
 @media (min-height: 200px) {
   .fullheight-results {
     height: 45vw;
     
-    overflow: scroll;
+    overflow-y: scroll;
   }
 }
 
 @media (min-height: 300px) {
   .fullheight-results {
     height: 600px;
-    overflow: scroll;
+    overflow-y: scroll;
   }
 }
 
 @media (min-height: 600px) {
   .fullheight-results {
     height: 600px;
-    overflow: scroll;
+    overflow-y: scroll;    
   }
 }
 @media (min-height: 800px) {
   .fullheight-results {
     height: 800px;
-    overflow: scroll;
+    overflow-y: scroll;
   }
 }
 @media (min-height: 1000px) {
   .fullheight-results {
     height: 45vw;
-    overflow: scroll;
+    overflow-y: scroll;
+    width: 100%
   }
 }
 
