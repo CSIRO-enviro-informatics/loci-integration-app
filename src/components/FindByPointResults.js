@@ -4,6 +4,7 @@ import React, { createRef, Component } from 'react'
 import Container from "react-bootstrap/Container";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
+import Dropdown from "react-bootstrap/Dropdown";
 import FindByPointWithinsResults from './FindByPointWithinsResults'
 import FindByPointOverlapResults from './FindByPointOverlapResults'
 import Tabs from "react-bootstrap/Tabs";
@@ -19,6 +20,7 @@ export default class FindByPointResults extends Component {
 
     this.state = {
       locations: this.props.locations,
+      orig_locations: {},
       withins_lookup: {},
       isLoading: false,
       latlng: this.props.latlng,
@@ -27,7 +29,12 @@ export default class FindByPointResults extends Component {
       currGeom: undefined,
       jobqueue: {},
       isGraphLoading: false,
-      arrDivs: []
+      arrDivs: [],
+      regionTypes: [],
+      regionTypeFilter: [],
+      updateResultList: false,
+      filteredLocations: {},
+      usefilteredLocations: false
     }
     this.updateWithins = this.updateWithins.bind(this);
     this.updateLocations = this.updateLocations.bind(this);
@@ -53,10 +60,14 @@ export default class FindByPointResults extends Component {
     }
 
     if (this.props.locations != this.state.locations) {
-      
+      var regionTypes = this.getRegionTypes(this.props.locations);
+
       this.setState({
         locations: this.props.locations,
+        orig_locations: this.props.locations,
+        usefilteredLocations: false,
         jobqueue: {},
+        regionTypes: regionTypes,
         graphData: graphData
       });         
       if('res' in this.props.locations) {
@@ -68,12 +79,85 @@ export default class FindByPointResults extends Component {
       
     }    
     if(this.state.isGraphLoading == true && Object.keys(this.state.jobqueue).length == 0){
-      this.updateGraphData();
+      
+      if(this.state.usefilteredLocations) {
+        this.updateGraphData(this.state.filteredLocations);      
+      }
+      else {
+        this.updateGraphData(this.state.locations);      
+      }
       this.setState({
         isGraphLoading: false
       })
     } 
+
+    if(this.state.updateResultList == true) {
+      var filteredLocations = this.getFilteredLocationList();
+      if('res' in filteredLocations) {
+        var arrDivs = this.updateArrDivs(filteredLocations);
+        this.setState({
+          arrDivs: arrDivs,
+          filteredLocations: filteredLocations,
+          usefilteredLocations: true,
+          isGraphLoading: true
+        });
+        //this.updateGraphData(filteredLocations);
+
+      }   
+      this.setState({
+        updateResultList: false
+      }) 
+      
+    }
     console.log(this.state.jobqueue);
+  }
+
+  getFilteredLocationList() {
+    var locations = JSON.parse(JSON.stringify(this.state.orig_locations))
+    
+    var filterArr = this.state.regionTypeFilter;
+
+    if(locations && locations != 'errorMessage' && 'res' in locations) {
+      
+      var filteredListOfResults = []
+      locations.res.forEach(function(item, index) {
+        filterArr.forEach(function(filter, index2) {
+          if(item['dataset'].startsWith(filter)) {
+            filteredListOfResults.push(item);
+          }
+        });        
+      });
+      locations.res = filteredListOfResults;
+      locations.count = filteredListOfResults.length;
+      
+      return locations;
+    }
+
+    return []
+  }
+
+  getRegionTypes(locations) {
+    var regions = {};
+    if(locations && locations != 'errorMessage' && 'res' in locations) {
+      locations.res.forEach(function(item, index) {
+        if (item['dataset'].startsWith("asgs16_")) {          
+            regions['asgs16'] =  "ASGS 2016";
+        }
+        else if(item['dataset'].startsWith("geofabric2_1_1_")) {
+            regions['geofabric2_1_1'] =  "Geofabric v2.1.1";
+        }
+      });
+    }
+    if(regions == {} || regions === 'undefined') {
+      return [];
+    }
+  
+    var arr = []
+    Object.keys(regions).forEach(function(key) {
+      arr.push({'id': key, 'label': regions[key] });
+    });
+  
+    return arr;
   }
 
   updateWithins(withins_locations) {
@@ -150,7 +234,7 @@ export default class FindByPointResults extends Component {
       //  console.log(item);
       //});
       
-      var resultsDiv = locations.res.forEach(function(item, index) {
+      locations.res.forEach(function(item, index) {
         var withinJobId = index + "-within";
         here.addJobToQueue(withinJobId, {});
         var overlapJobId = index + "-overlap";
@@ -164,7 +248,7 @@ export default class FindByPointResults extends Component {
             <div>
                 Feature: <a href={item['feature']}>{item['feature']}</a> <span>&nbsp;</span>
                 <Button variant="outline-primary" size="sm" onClick={(e) => here.handleViewGeomClick(e, item['geometry'])}>
-                  View Geometry
+                  View area
                 </Button>
                 <br/>Dataset: {item['dataset']}
                       <FindByPointWithinsResults locationUri={item['feature']} jobid={withinJobId}  errorCallback={here.errorCallback} parentCallback={here.callbackFunction} />
@@ -204,7 +288,7 @@ export default class FindByPointResults extends Component {
   }
 
 
-  updateGraphData = () => {
+  updateGraphData = (locations) => {
     //this.setState({
     //  graphData: g
     //});
@@ -220,8 +304,8 @@ export default class FindByPointResults extends Component {
     };
     
 
-    if(this.state.locations != 'errorMessage' && 'res' in this.state.locations) {
-      this.state.locations.res.forEach(
+    if(locations != 'errorMessage' && 'res' in locations) {
+      locations.res.forEach(
         (resItem, index) => {
         var dataset_label = resItem['dataset'];
         var uri = resItem['feature'];
@@ -336,6 +420,14 @@ export default class FindByPointResults extends Component {
 
   }
 
+  handleFilterRegionType(regionTypeId) {
+    console.log("region type to filter: " + regionTypeId);
+    this.setState({
+      regionTypeFilter: [ regionTypeId ],
+      updateResultList: true
+    })
+  }
+
   render() {
     const labelMapping = {
       "mb": "ASGS MeshBlock",
@@ -361,11 +453,26 @@ export default class FindByPointResults extends Component {
 
     var arrDivs = this.state.arrDivs;
   
-    
+    var regionTypes = this.state.regionTypes;
+
+    var filters = (
+      <Dropdown>
+        <Dropdown.Toggle variant="success" id="dropdown-basic">
+        Filter by region types
+      </Dropdown.Toggle>
+
+      <Dropdown.Menu>
+          {regionTypes.map( (regionType, index) => (
+            <Dropdown.Item key={index} onSelect={() => console.log("selected")} onClick={()=> {console.log("click"); this.handleFilterRegionType(regionType['id']) }} >{regionType['label']}</Dropdown.Item>
+          ))}
+      </Dropdown.Menu>
+    </Dropdown>
+    )
     var validArrDivsOrBlank = (arrDivs.length > 0) ?
       (
         <div>
             <div><FindByPointGraphVisualiser graphData={this.state.graphData} callback={this.props.renderResultSummaryFn}/></div> 
+            {filters}
             {arrDivs}
             </div>        
       )
@@ -375,7 +482,7 @@ export default class FindByPointResults extends Component {
     console.log(this.state.jobqueue);
 
     return (
-      <Container className="h-100" >
+      <div className="h-100" >
         <Row>
           <Col sm={12} className="fullheight-results">
 
@@ -393,7 +500,7 @@ export default class FindByPointResults extends Component {
 
           </Col>
         </Row>
-      </Container>
+      </div>
     )
   }
 }
