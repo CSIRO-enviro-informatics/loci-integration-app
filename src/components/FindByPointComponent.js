@@ -93,7 +93,8 @@ export default class FindByPointComponent extends Component {
         (result) => {
           this.setState({
             jsonResults: result,
-            queryResults: this.formatResults(result)
+            queryResults: this.formatResults(result),
+            geometryGeojsonData: null
           });
           console.log(result);
         },
