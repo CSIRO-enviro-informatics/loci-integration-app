@@ -457,7 +457,7 @@ export default class FindByPointResults extends Component {
 
     var filters = (
       <Dropdown>
-        <Dropdown.Toggle variant="success" id="dropdown-basic">
+        <Dropdown.Toggle variant="light" id="dropdown-basic">
         Filter by region types
       </Dropdown.Toggle>
 
