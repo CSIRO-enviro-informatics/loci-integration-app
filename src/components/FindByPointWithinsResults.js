@@ -99,7 +99,7 @@ export default class FindByPointWithinsResults extends Component {
       return (<ul> {
         withinsObj.map((item, index) => (
           <li className="indent" key={index}>
-            <a href={item}>{item}</a>
+            <a  target="feature" href={item}>{item}</a>
           </li>
         ))
       }

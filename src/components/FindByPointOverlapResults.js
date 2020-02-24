@@ -124,7 +124,7 @@ export default class FindByPointOverlapResults extends Component {
       return (<ul> {
         overlapsObj.map((item, index) => (
           <li className="indent" key={index}>
-            <a href={item.uri}>{item.uri}</a>
+            <a  target="feature" href={item.uri}>{item.uri}</a>
           </li>
         ))
       }

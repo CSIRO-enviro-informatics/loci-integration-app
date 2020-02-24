@@ -246,10 +246,13 @@ export default class FindByPointResults extends Component {
         arrDivs.push( (
           <div className="mainPageResultListItem" key={index}>
             <div>
-                Feature: <a href={item['feature']}>{item['feature']}</a> <span>&nbsp;</span>
+                Feature: <a target="feature" href={item['feature']}>{item['feature']}</a> <span>&nbsp;</span>
                 <Button variant="outline-primary" size="sm" onClick={(e) => here.handleViewGeomClick(e, item['geometry'])}>
                   View area
                 </Button>
+                <Button variant="outline-primary" size="sm" href={item['geometry']} target="gds">
+                    View in GDS
+                </Button>                
                 <br/>Dataset: {item['dataset']}
                       <FindByPointWithinsResults locationUri={item['feature']} jobid={withinJobId}  errorCallback={here.errorCallback} parentCallback={here.callbackFunction} />
                       <FindByPointOverlapResults locationUri={item['feature']} jobid={overlapJobId}  errorCallback={here.errorCallback} parentCallback={here.callbackFunction} />
