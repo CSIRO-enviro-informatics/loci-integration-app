@@ -4,24 +4,37 @@ import React, { createRef, Component } from 'react'
 import Container from "react-bootstrap/Container";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
+import Dropdown from "react-bootstrap/Dropdown";
 import FindByPointWithinsResults from './FindByPointWithinsResults'
 import FindByPointOverlapResults from './FindByPointOverlapResults'
 import Tabs from "react-bootstrap/Tabs";
 import Tab from "react-bootstrap/Tab";
 import FindByPointGraphVisualiser from './FindByPointGraphVisualiser';
+import Button from "react-bootstrap/Button";
+
 
 export default class FindByPointResults extends Component {
   constructor(props) {
     super(props)
+    var graphData = { "nodes": [], "links": [] };
 
     this.state = {
       locations: this.props.locations,
+      orig_locations: {},
       withins_lookup: {},
       isLoading: false,
       latlng: this.props.latlng,
       contextLocationLookups: {},
-      graphData: {},
-      currGeom: undefined
+      graphData: graphData,
+      currGeom: undefined,
+      jobqueue: {},
+      isGraphLoading: false,
+      arrDivs: [],
+      regionTypes: [],
+      regionTypeFilter: [],
+      updateResultList: false,
+      filteredLocations: {},
+      usefilteredLocations: false
     }
     this.updateWithins = this.updateWithins.bind(this);
     this.updateLocations = this.updateLocations.bind(this);
@@ -34,12 +47,117 @@ export default class FindByPointResults extends Component {
 
 
   componentDidUpdate() {
+    var graphData = { "nodes": [], "links": [] };
+
     if (this.props.latlng != this.state.latlng) {
       this.setState({
         latlng: this.props.latlng,
-        contextLocationLookups: {}
+        contextLocationLookups: {},
+        jobqueue: {},
+        graphData: graphData
+      });
+      
+    }
+
+    if (this.props.locations != this.state.locations) {
+      var regionTypes = this.getRegionTypes(this.props.locations);
+
+      this.setState({
+        locations: this.props.locations,
+        orig_locations: this.props.locations,
+        usefilteredLocations: false,
+        jobqueue: {},
+        regionTypes: regionTypes,
+        graphData: graphData
+      });         
+      if('res' in this.props.locations) {
+        var arrDivs = this.updateArrDivs(this.props.locations);
+        this.setState({
+          arrDivs: arrDivs
+        })
+      }    
+      
+    }    
+    if(this.state.isGraphLoading == true && Object.keys(this.state.jobqueue).length == 0){
+      
+      if(this.state.usefilteredLocations) {
+        this.updateGraphData(this.state.filteredLocations);      
+      }
+      else {
+        this.updateGraphData(this.state.locations);      
+      }
+      this.setState({
+        isGraphLoading: false
+      })
+    } 
+
+    if(this.state.updateResultList == true) {
+      var filteredLocations = this.getFilteredLocationList();
+      if('res' in filteredLocations) {
+        var arrDivs = this.updateArrDivs(filteredLocations);
+        this.setState({
+          arrDivs: arrDivs,
+          filteredLocations: filteredLocations,
+          usefilteredLocations: true,
+          isGraphLoading: true
+        });
+        //this.updateGraphData(filteredLocations);
+
+      }   
+      this.setState({
+        updateResultList: false
+      }) 
+      
+    }
+    console.log(this.state.jobqueue);
+  }
+
+  getFilteredLocationList() {
+    var locations = JSON.parse(JSON.stringify(this.state.orig_locations))
+    
+    var filterArr = this.state.regionTypeFilter;
+
+    if(locations && locations != 'errorMessage' && 'res' in locations) {
+      
+      var filteredListOfResults = []
+      locations.res.forEach(function(item, index) {
+        filterArr.forEach(function(filter, index2) {
+          if(item['dataset'].startsWith(filter)) {
+            filteredListOfResults.push(item);
+          }
+        });        
+      });
+      locations.res = filteredListOfResults;
+      locations.count = filteredListOfResults.length;
+      
+      return locations;
+    }
+
+    return []
+  }
+
+  getRegionTypes(locations) {
+    var regions = {};
+    if(locations && locations != 'errorMessage' && 'res' in locations) {
+      locations.res.forEach(function(item, index) {
+        if (item['dataset'].startsWith("asgs16_")) {          
+            regions['asgs16'] =  "ASGS 2016";
+        }
+        else if(item['dataset'].startsWith("geofabric2_1_1_")) {
+            regions['geofabric2_1_1'] =  "Geofabric v2.1.1";
+        }
       });
     }
+    if(regions == {} || regions === 'undefined') {
+      return [];
+    }
+  
+    var arr = []
+    Object.keys(regions).forEach(function(key) {
+      arr.push({'id': key, 'label': regions[key] });
+    });
+  
+    return arr;
   }
 
   updateWithins(withins_locations) {
@@ -80,7 +198,7 @@ export default class FindByPointResults extends Component {
     return graphData;
   }
 
-  callbackFunction = (uri, relation, data) => {
+  callbackFunction = (uri, relation, data, jobid) => {
     console.log(uri);
     console.log(relation);
     console.log(data);
@@ -95,70 +213,88 @@ export default class FindByPointResults extends Component {
     }
     curr[uri][relation] = data;
 
-
+    this.removeJobFromQueue(jobid);
     this.setState({
       contextLocationLookups: curr
     })
   }
 
-  updateGraphData = (g) => {
-    this.setState({
-      graphData: g
-    });
+  errorCallback = (errMessage, jobid) => {
+    console.log(errMessage);
+    this.removeJobFromQueue(jobid);
   }
-  handleViewGeomClick(e, geom_uri) {
-    console.log('this is:', e);
-    console.log('geometry uri:', geom_uri);
-    //this.setState({
-    //  currGeom: geom_uri
-    //});
 
-    //lookup geom and call update leaflet function with uri
-    
-    var geom_svc_headers = new Headers();
-    geom_svc_headers.append('Accept', 'application/json');
+  updateArrDivs = (locations) => {
+    var arrDivs = [];
     var here = this;
-    fetch(geom_uri, {       
-      headers: geom_svc_headers })
-        .then(response => {
-          console.log(response);
-          return response.json()
-        })
-        .then(data => {
-          console.log(data);
-          here.props.renderSelectedGeometryFn(data);
-        }
-        )
-        .catch(error => 
-          { 
-            //this.setState({ error, isLoading: false });
-            console.log("Error getting ", geom_uri);
-            console.log(error)
-          }
-          );
-          
+    //change this to iterate through a list rather than a location dict obj
     
+    if(locations && locations != 'errorMessage' && 'res' in locations) {
+      //this.state.locations['res'].forEach(function(item, index) {
+      //  console.log(item);
+      //});
+      
+      locations.res.forEach(function(item, index) {
+        var withinJobId = index + "-within";
+        here.addJobToQueue(withinJobId, {});
+        var overlapJobId = index + "-overlap";
+        here.addJobToQueue(overlapJobId, {});
+        here.setState({
+          isGraphLoading: true
+        });
 
+        arrDivs.push( (
+          <div className="mainPageResultListItem" key={index}>
+            <div>
+                Feature: <a target="feature" href={item['feature']}>{item['feature']}</a> <span>&nbsp;</span>
+                <Button variant="outline-primary" size="sm" onClick={(e) => here.handleViewGeomClick(e, item['geometry'])}>
+                  View area
+                </Button>
+                <Button variant="outline-primary" size="sm" href={item['geometry']} target="gds">
+                    View in GDS
+                </Button>                
+                <br/>Dataset: {item['dataset']}
+                      <FindByPointWithinsResults locationUri={item['feature']} jobid={withinJobId}  errorCallback={here.errorCallback} parentCallback={here.callbackFunction} />
+                      <FindByPointOverlapResults locationUri={item['feature']} jobid={overlapJobId}  errorCallback={here.errorCallback} parentCallback={here.callbackFunction} />
+                
+            </div>
+          </div>
+        ));
+      });        
+    }
+    return arrDivs;
   }
 
-  render() {
-    const labelMapping = {
-      "mb": "ASGS MeshBlock",
-      "cc": "Geofabric ContractedCatchment"
-    }
 
-    var fn = this.renderWithins;
-    var contextLocationLookups = this.state.contextLocationLookups;
-    console.log(contextLocationLookups);
-    var message = (<div></div>)
-    if (this.props.locations && Object.keys(this.props.locations).length > 0) {
-      message = (<div><h3>Results</h3></div>)
+  addJobToQueue = (key, j) => {    
+    if(key in this.state.jobqueue) {
+      //exists in queue!
+      return
     }
+    else {
+      var newqueue = this.state.jobqueue;
+      newqueue[key] = j;
+      this.setState({
+        jobqueue: newqueue
+      })
+      console.log("added " + key + " from queue");
+    }     
+  }
+  removeJobFromQueue = (key) => {    
+    console.log("removing " + key + " from queue");
 
-    var pointMessage = (<p></p>)
-    if (this.props.latlng) {
-      pointMessage = (<p>Point selected on map: {this.props.latlng}</p>)
+    if(key in this.state.jobqueue) {
+      delete this.state.jobqueue[key];
+      console.log("removed " + key + " from queue");
+      console.log()
     }
+  }
+
+
+  updateGraphData = (locations) => {
+    //this.setState({
+    //  graphData: g
+    //});
 
     var graphData = { "nodes": [], "links": [] };
 
@@ -169,9 +305,10 @@ export default class FindByPointResults extends Component {
       'fixed': true,
       'children': []
     };
+    
 
-    if(this.props.locations != 'errorMessage' && 'res' in this.props.locations) {
-      this.props.locations.res.forEach(
+    if(locations != 'errorMessage' && 'res' in locations) {
+      locations.res.forEach(
         (resItem, index) => {
         var dataset_label = resItem['dataset'];
         var uri = resItem['feature'];
@@ -193,8 +330,8 @@ export default class FindByPointResults extends Component {
             'children': []
           };
   
-          if (uri in contextLocationLookups && 'within' in contextLocationLookups[uri]) {
-            contextLocationLookups[uri]['within'].locations.forEach(item => {
+          if (uri in this.state.contextLocationLookups && 'within' in this.state.contextLocationLookups[uri]) {
+            this.state.contextLocationLookups[uri]['within'].locations.forEach(item => {
               withinChild.children.push({
                 'name': item,
                 'label': item,
@@ -208,8 +345,8 @@ export default class FindByPointResults extends Component {
             'label': "overlap",
             'children': []
           };
-          if (uri in contextLocationLookups && 'overlap' in contextLocationLookups[uri]) {
-            contextLocationLookups[uri]['overlap'].overlaps.forEach(item => {
+          if (uri in this.state.contextLocationLookups && 'overlap' in this.state.contextLocationLookups[uri]) {
+            this.state.contextLocationLookups[uri]['overlap'].overlaps.forEach(item => {
               overlapChild.children.push({
                 'name': item.uri,
                 'label': item.uri,
@@ -233,53 +370,124 @@ export default class FindByPointResults extends Component {
       });
   
     }
-
+    console.log(this.state.jobqueue);
     console.log(rootObj);
     graphData = this.convertTreeObjToD3Data(null, rootObj, graphData, {});
     console.log(graphData);
 
-    var here = this;
-    //change this to iterate through a list rather than a location dict obj
-    var arrDivs = [];
-    if(this.props.locations != 'errorMessage' && 'res' in this.props.locations) {
-      this.props.locations['res'].forEach(function(item, index) {
-        console.log(item);
-      });
-      var resultsDiv = this.props.locations.res.forEach(function(item, index) {
-        arrDivs.push( (
-          <div class="mainPageResultListItem" key={index}>
-            <div>
-                Feature: <a href={item['feature']}>{item['feature']}</a> 
-                <button onClick={(e) => here.handleViewGeomClick(e, item['geometry'])}>
-                  View Geometry
-                </button>
-                <br/>Dataset: {item['dataset']}
-                      <FindByPointWithinsResults locationUri={item['feature']} parentCallback={here.callbackFunction} />
-                      <FindByPointOverlapResults locationUri={item['feature']} parentCallback={here.callbackFunction} />
-                
-            </div>
-          </div>
-        ));
-      });        
+    if(graphData != this.state.graphData) {
+      this.setState({
+        graphData: graphData
+      });  
     }
 
+  }
+  handleViewGeomClick(e, geom_uri) {
+    console.log('this is:', e);
+    console.log('geometry uri:', geom_uri);
+    //this.setState({
+    //  currGeom: geom_uri
+    //});
+
+    //lookup geom and call update leaflet function with uri
+    
+    var geom_svc_headers = new Headers();
+    geom_svc_headers.append('Accept', 'application/json');
+    var here = this;
+    if(geom_uri.indexOf("?") > -1) {
+      geom_uri = geom_uri + "&_view=simplifiedgeom"
+    }
+    else {
+      geom_uri = geom_uri + "?_view=simplifiedgeom"
+    }
+    fetch(geom_uri, {       
+      headers: geom_svc_headers })
+        .then(response => {
+          console.log(response);
+          return response.json()
+        })
+        .then(data => {
+          console.log(data);
+          here.props.renderSelectedGeometryFn(data);
+        }
+        )
+        .catch(error => 
+          { 
+            //this.setState({ error, isLoading: false });
+            console.log("Error getting ", geom_uri);
+            console.log(error)
+          }
+          );
+          
+    
+
+  }
+
+  handleFilterRegionType(regionTypeId) {
+    console.log("region type to filter: " + regionTypeId);
+    this.setState({
+      regionTypeFilter: [ regionTypeId ],
+      updateResultList: true
+    })
+  }
+
+  render() {
+    const labelMapping = {
+      "mb": "ASGS MeshBlock",
+      "cc": "Geofabric ContractedCatchment"
+    }
+
+    var fn = this.renderWithins;
+    var contextLocationLookups = this.state.contextLocationLookups;
+    console.log(contextLocationLookups);
+    var message = (<div></div>)
+    if (this.state.locations && Object.keys(this.state.locations).length > 0) {
+      message = (<div><h3>Results</h3></div>)
+    }
+
+    var pointMessage = (<p></p>)
+    if (this.state.latlng) {
+      pointMessage = (<p>Point selected on map: {this.state.latlng}</p>)
+    }
+
+    var gd = this.state.graphData;
+    console.log(gd);
+
+
+    var arrDivs = this.state.arrDivs;
   
+    var regionTypes = this.state.regionTypes;
+
+    var filters = (
+      <Dropdown>
+        <Dropdown.Toggle variant="light" id="dropdown-basic">
+        Filter by region types
+      </Dropdown.Toggle>
+
+      <Dropdown.Menu>
+          {regionTypes.map( (regionType, index) => (
+            <Dropdown.Item key={index} onSelect={() => console.log("selected")} onClick={()=> {console.log("click"); this.handleFilterRegionType(regionType['id']) }} >{regionType['label']}</Dropdown.Item>
+          ))}
+      </Dropdown.Menu>
+    </Dropdown>
+    )
     var validArrDivsOrBlank = (arrDivs.length > 0) ?
       (
         <div>
-            <div><FindByPointGraphVisualiser graphData={graphData} callback={this.props.renderResultSummaryFn}/></div> 
+            <div><FindByPointGraphVisualiser graphData={this.state.graphData} callback={this.props.renderResultSummaryFn}/></div> 
+            {filters}
             {arrDivs}
             </div>        
       )
       :
       <div></div>;
 
-
+    console.log(this.state.jobqueue);
 
     return (
-      <Container>
+      <div className="h-100" >
         <Row>
-          <Col sm={12}>
+          <Col sm={12} className="fullheight-results">
 
 
             {message}
@@ -295,7 +503,7 @@ export default class FindByPointResults extends Component {
 
           </Col>
         </Row>
-      </Container>
+      </div>
     )
   }
 }
