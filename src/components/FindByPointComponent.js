@@ -23,7 +23,8 @@ export default class FindByPointComponent extends Component {
       jsonResults: {},
       findByPointMode: false,
       searchQuery: "",
-      curr_location_uri: null
+      curr_location_uri: null,
+      geometryGeojsonData: null
     }
     this.updateResult = this.updateResult.bind(this);
 
@@ -122,7 +123,13 @@ export default class FindByPointComponent extends Component {
     });
   }
 
- 
+  renderSelectedGeometryFn = (geojsonData) => {
+    //this.setState({message: childData})
+    this.setState({
+      geometryGeojsonData: geojsonData
+    });
+  }
+
   renderResultSummaryFn = (uri) => {
     //this.setState({message: childData})
     this.setState({
@@ -146,8 +153,8 @@ export default class FindByPointComponent extends Component {
     if (this.state.resultsMode == "SEARCH") {
       componentToLoad = (<SearchResultWidget renderResultSummaryFn={this.renderResultSummaryFn} query={this.state.searchQuery} />) 
     } 
-    else if (this.state.resultsMode == "FIND_AT_POINT") {
-      componentToLoad = (<FindByPointResults latlng={ll} locations={locations} count={numLoc} renderResultSummaryFn={this.renderResultSummaryFn}/>)
+    else if (this.state.resultsMode == "FIND_AT_POINT") {      
+      componentToLoad = (<FindByPointResults latlng={ll} locations={locations} count={numLoc} renderSelectedGeometryFn={this.renderSelectedGeometryFn} renderResultSummaryFn={this.renderResultSummaryFn}/>)
     }
     else if (this.state.resultsMode == "RESULT_SUMMARY") {
       componentToLoad = (<MainPageResultComponent location_uri={this.state.curr_location_uri} renderResultSummaryFn={this.renderResultSummaryFn}/>)
@@ -160,7 +167,7 @@ export default class FindByPointComponent extends Component {
       <Container fluid='true'>
         <Row>
           <Col sm={6}>
-            <SimpleLeaflet jsonSearchResults={this.state.jsonResults} inputRef={this.testFn} pointSelectCallback={this.performFindAtPoint}/>
+            <SimpleLeaflet jsonSearchResults={this.state.jsonResults} geometryGeojson={this.state.geometryGeojsonData} inputRef={this.testFn} pointSelectCallback={this.performFindAtPoint}/>
           </Col>
           <Col sm={6}>
             <Row>
