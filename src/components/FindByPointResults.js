@@ -34,7 +34,8 @@ export default class FindByPointResults extends Component {
       regionTypeFilter: [],
       updateResultList: false,
       filteredLocations: {},
-      usefilteredLocations: false
+      usefilteredLocations: false,
+      findByLocationError: false
     }
     this.updateWithins = this.updateWithins.bind(this);
     this.updateLocations = this.updateLocations.bind(this);
@@ -70,7 +71,14 @@ export default class FindByPointResults extends Component {
         regionTypes: regionTypes,
         graphData: graphData
       });         
-      if('res' in this.props.locations) {
+      //check if errorMessage
+      if(this.props.locations == 'errorMessage') {
+        var arrDivs = this.updateArrDivs(this.props.locations);
+        this.setState({
+          arrDivs: arrDivs
+        });
+      }
+      else if('res' in this.props.locations) {
         var arrDivs = this.updateArrDivs(this.props.locations);
         this.setState({
           arrDivs: arrDivs
@@ -261,6 +269,13 @@ export default class FindByPointResults extends Component {
           </div>
         ));
       });        
+    }
+    else {
+      arrDivs.push( (
+        <div className="mainPageResultError">Error: Find By Location API encountered an unexpected error. Please try again later.</div>));
+      here.setState({
+          findByLocationError: true
+      });
     }
     return arrDivs;
   }
