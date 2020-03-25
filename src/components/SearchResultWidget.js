@@ -116,10 +116,10 @@ export default class SearchResultWidget extends Component {
         hits = this.state.queryResults.hits.hits.map((item,key) => (
                   <div className="search-result-block" key={item._source.label}> 
                     <div className="search-result-label">{item._source.label} &nbsp; </div>
+                    <div>{item._source.uri}</div>
                     <div className="search-result-links"> 
                         <ButtonToolbar>
-                          <Button variant="outline-primary" size="sm" onClick={() => this.run_callback(item)}>View in Loc-I Explorer</Button>
-                          <Button variant="outline-primary" size="sm" href={item._source.uri} target='other'>Loc-I ID</Button>
+                          <Button variant="outline-primary" size="sm" onClick={() => this.run_callback(item)}>View in Loc-I Explorer</Button>                          
                         </ButtonToolbar>
                     </div>
                   </div>

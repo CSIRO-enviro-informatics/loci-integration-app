@@ -87,6 +87,17 @@ export default class MainPageResultComponent extends Component {
       contextLocationLookups: curr
     })
   }
+  getGeomInfo = (uri) => {
+      fetch(uri, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+       .then(response => response.json())
+       .then(data => {
+         console.log(data)
+       });
+  }
 
   
   callbackFunction = (uri, relation, data) => {
@@ -104,6 +115,29 @@ export default class MainPageResultComponent extends Component {
     }
     curr[uri][relation] = data;
 
+    //fetch the geometry info
+    fetch(uri, {
+      method: "GET",
+      //mode: "no-cors",
+      headers: {
+        "Accept": "application/ld+json"
+      }
+    }).then(function(response) {
+      //response.status     //=> number 100–599
+      //response.statusText //=> String
+      //response.headers    //=> Headers
+      //response.url        //=> String
+      console.log("fetch status: " + response.status);
+      console.log("fetch: " + response.text());
+      return response.json();
+    }, function(error) {
+      //error.message //=> String
+      console.log("fetch error: " + error);
+    })
+    .then(function(data) {
+      // Do stuff with the JSON
+      console.log("fetch: " + data);
+    });
 
     this.setState({
       contextLocationLookups: curr
