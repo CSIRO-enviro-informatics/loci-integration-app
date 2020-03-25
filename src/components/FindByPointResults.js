@@ -345,7 +345,9 @@ export default class FindByPointResults extends Component {
             'children': []
           };
   
-          if (uri in this.state.contextLocationLookups && 'within' in this.state.contextLocationLookups[uri]) {
+          if (uri in this.state.contextLocationLookups && 'within' in this.state.contextLocationLookups[uri] 
+               && this.state.contextLocationLookups[uri]['within'].locations instanceof Array 
+              && this.state.contextLocationLookups[uri]['within'].locations.length > 0) {
             this.state.contextLocationLookups[uri]['within'].locations.forEach(item => {
               withinChild.children.push({
                 'name': item,
@@ -360,8 +362,10 @@ export default class FindByPointResults extends Component {
             'label': "overlap",
             'children': []
           };
-          if (uri in this.state.contextLocationLookups && 'overlap' in this.state.contextLocationLookups[uri]) {
-            this.state.contextLocationLookups[uri]['overlap'].overlaps.forEach(item => {
+          if (uri in this.state.contextLocationLookups && 'overlap' in this.state.contextLocationLookups[uri]
+            && this.state.contextLocationLookups[uri]['overlap'].locations instanceof Array 
+            && this.state.contextLocationLookups[uri]['overlap'].locations.length > 0) {
+          this.state.contextLocationLookups[uri]['overlap'].overlaps.forEach(item => {
               overlapChild.children.push({
                 'name': item.uri,
                 'label': item.uri,
