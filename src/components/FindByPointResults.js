@@ -391,6 +391,7 @@ export default class FindByPointResults extends Component {
     }
     console.log(this.state.jobqueue);
     console.log(rootObj);
+    /* ignore graphdata 
     graphData = this.convertTreeObjToD3Data(null, rootObj, graphData, {});
     console.log(graphData);
 
@@ -399,6 +400,7 @@ export default class FindByPointResults extends Component {
         graphData: graphData
       });  
     }
+    */
 
   }
   handleViewGeomClick(e, geom_uri) {
@@ -490,6 +492,7 @@ export default class FindByPointResults extends Component {
       </Dropdown.Menu>
     </Dropdown>
     )
+    /*
     var validArrDivsOrBlank = (arrDivs.length > 0) ?
       (
         <div>
@@ -500,7 +503,16 @@ export default class FindByPointResults extends Component {
       )
       :
       <div></div>;
-
+      */
+     var validArrDivsOrBlank = (arrDivs.length > 0) ?
+      (
+        <div>
+            {filters}
+            {arrDivs}
+            </div>        
+      )
+      :
+      <div></div>;
     console.log(this.state.jobqueue);
 
     return (
