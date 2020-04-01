@@ -34,22 +34,7 @@ export default function App() {
           </li>
           <li>
             <Link to="/about">About</Link>
-          </li>
-          <li>
-            <Link to="/search">Search</Link>
-          </li>
-          <li>
-            <Link to="/datasets">Datasets</Link>
-          </li>
-          <li>
-            <Link to="/linksets">Linksets</Link>
-          </li>
-          <li>
-            <Link to="/locations">Locations</Link>
-          </li>
-          <li>
-            <Link to="/tools">Tools</Link>
-          </li>
+          </li>         
         </ul>
 
         <Switch>
