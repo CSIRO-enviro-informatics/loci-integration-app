@@ -1,7 +1,7 @@
 // @flow
 
 import React, { createRef, Component } from "react";
-import { Map, TileLayer, Marker, Popup, GeoJSON } from "react-leaflet";
+import { Map, TileLayer, Marker, Popup, GeoJSON, FeatureGroup } from "react-leaflet";
 import hash from "object-hash";
 import jsonld from "jsonld";
 import parseGmlPolygon from "parse-gml-polygon";
@@ -16,6 +16,7 @@ export default class SimpleLeaflet extends Component {
     this.state = {
       hasLocation: false,
       hasBoundary: false,
+      mounted: false,
       geojson: {},
       unique_key: new Date(),
       latlng: {
@@ -26,9 +27,13 @@ export default class SimpleLeaflet extends Component {
       inputRefFn: props.inputRef,
       pointSelectCallback: props.pointSelectCallback
     };
+    this.groupRef = createRef();
+    this.mapRef = createRef();
+
   }
 
-  mapRef = createRef();
+  
+
   old_url = "";
 
   componentDidUpdate(prevProps, prevState) {
@@ -36,9 +41,25 @@ export default class SimpleLeaflet extends Component {
         this.setState({
           geojson: this.props.geometryGeojson,
           hasBoundary: true
-        });
+        });        
+        console.log("Map updated!");
+        console.log(this.state.geojson);
+        if(this.state.mounted) {
+          
+        }  
     }
-    
+    console.log("map updated")
+    if(this.state.geojson != null && this.state.geojson !== 'undefined' && Object.keys(this.state.geojson).length !== 0) {
+      const map = this.mapRef.current.leafletElement;
+      const group = this.groupRef.current.leafletElement;
+      var bounds = group.getBounds();
+      map.fitBounds(bounds);
+    }
+  }
+
+  componentDidMount() {
+    console.log("map mounted")
+   
   }
 
   handleClick = e => {
@@ -109,6 +130,7 @@ export default class SimpleLeaflet extends Component {
     var geojson_layer = this.state.hasBoundary ? (
       <GeoJSON key={hash(this.state.geojson)} data={this.state.geojson} />
     ) : null;
+    
     return (
       <Map
         center={this.state.latlng}
@@ -122,7 +144,11 @@ export default class SimpleLeaflet extends Component {
           attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {marker} {geojson_layer}{" "}
+        {marker} 
+        <FeatureGroup ref={this.groupRef}>
+          {geojson_layer}
+        </FeatureGroup>
+        {" "}
       </Map>
     );
   }

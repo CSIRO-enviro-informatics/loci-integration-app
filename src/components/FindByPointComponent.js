@@ -158,7 +158,7 @@ export default class FindByPointComponent extends Component {
       componentToLoad = (<FindByPointResults latlng={ll} locations={locations} count={numLoc} renderSelectedGeometryFn={this.renderSelectedGeometryFn} renderResultSummaryFn={this.renderResultSummaryFn}/>)
     }
     else if (this.state.resultsMode == "RESULT_SUMMARY") {
-      componentToLoad = (<MainPageResultComponent location_uri={this.state.curr_location_uri} renderResultSummaryFn={this.renderResultSummaryFn}/>)
+      componentToLoad = (<MainPageResultComponent location_uri={this.state.curr_location_uri} renderSelectedGeometryFn={this.renderSelectedGeometryFn} renderResultSummaryFn={this.renderResultSummaryFn}/>)
     }
     else { //default is an empty div
       componentToLoad = (<div></div>)

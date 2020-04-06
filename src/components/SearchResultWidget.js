@@ -119,7 +119,7 @@ export default class SearchResultWidget extends Component {
                     <div>{item._source.uri}</div>
                     <div className="search-result-links"> 
                         <ButtonToolbar>
-                          <Button variant="outline-primary" size="sm" onClick={() => this.run_callback(item)}>View in Loc-I Explorer</Button>                          
+                          <Button variant="outline-primary" size="sm" onClick={() => this.run_callback(item)}>View</Button>                          
                         </ButtonToolbar>
                     </div>
                   </div>

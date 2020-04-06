@@ -17,12 +17,33 @@ export default class MainPageResultComponent extends Component {
 
     this.state = {
       contextLocationLookups: {},
-      location_uri: this.props.location_uri
+      location_uri: this.props.location_uri,
+      locationResourceData: {}
     }
 
   }
 
   componentDidMount() {
+    fetch(process.env.REACT_APP_LOCI_INTEGRATION_API_ENDPOINT + "/resource?uri=" + this.props.location_uri)
+        .then(res => res.json())
+        .then(
+          (result) => {
+            this.setState({
+              isLoaded: true,
+              locationResourceData: result
+            });
+            this.loadGeom(result)
+          },
+          // Note: it's important to handle errors here
+          // instead of a catch() block so that we don't swallow
+          // exceptions from actual bugs in components.
+          (error) => {
+            this.setState({
+              isLoaded: true,
+              error
+            });
+          }
+        );
     this.setState({
       contextLocationLookups: {},
       location_uri: this.props.location_uri
@@ -35,6 +56,7 @@ export default class MainPageResultComponent extends Component {
         location_uri: this.props.location_uri
       })
     }
+    
   }
 
   convertTreeObjToD3Data(parent, node, graphData, idx = {}) {
@@ -136,12 +158,71 @@ export default class MainPageResultComponent extends Component {
     })
     .then(function(data) {
       // Do stuff with the JSON
-      console.log("fetch: " + data);
+      //console.log("fetch: " + data);
     });
 
     this.setState({
       contextLocationLookups: curr
     })
+  }
+
+ 
+
+  loadGeom(location_resource) {
+
+    var geom_uri = "";
+    if("http://www.opengis.net/ont/geosparql#hasDefaultGeometry" in location_resource) {
+       geom_uri = location_resource["http://www.opengis.net/ont/geosparql#hasDefaultGeometry"]
+    }
+    else if ("http://www.opengis.net/ont/geosparql#hasGeometry" in location_resource) {
+       geom_uri = location_resource["http://www.opengis.net/ont/geosparql#hasGeometry"]
+    }
+
+    if(geom_uri == "") {
+      return;
+    }
+    console.log('geometry uri:', geom_uri);
+    //this.setState({
+    //  currGeom: geom_uri
+    //});
+
+    if (typeof geom_uri === 'string' || geom_uri instanceof String) {
+      geom_uri = geom_uri.replace("http:", "https:");
+          //lookup geom and call update leaflet function with uri
+    
+      var geom_svc_headers = new Headers();
+      geom_svc_headers.append('Accept', 'application/json');
+      var here = this;
+      if(geom_uri.indexOf("?") > -1) {
+        geom_uri = geom_uri + "&_view=simplifiedgeom"
+      }
+      else {
+        geom_uri = geom_uri + "?_view=simplifiedgeom"
+      }
+      fetch(geom_uri, {       
+        headers: geom_svc_headers })
+          .then(response => {
+            console.log(response);
+            return response.json()
+          })
+          .then(data => {
+            console.log(data);
+            here.props.renderSelectedGeometryFn(data);
+          }
+          )
+          .catch(error => 
+            { 
+              //this.setState({ error, isLoading: false });
+              console.log("Error getting ", geom_uri);
+              console.log(error)
+            }
+            );
+
+    }
+    else {
+      //handle geom object
+    }
+
   }
 
   render() {
