@@ -10,6 +10,8 @@ import FindByPointContainsResults from './FindByPointContainsResults'
 import Tabs from "react-bootstrap/Tabs";
 import Tab from "react-bootstrap/Tab";
 import FindByPointGraphVisualiser from './FindByPointGraphVisualiser';
+import proj from 'proj4';
+
 
 export default class MainPageResultComponent extends Component {
   constructor(props) {
@@ -221,7 +223,45 @@ export default class MainPageResultComponent extends Component {
     }
     else {
       //handle geom object
+      let geom_obj = geom_uri;
+      var wkt = '';
+      if("http://www.opengis.net/ont/geosparql#asWKT" in geom_obj) {
+        wkt = geom_obj["http://www.opengis.net/ont/geosparql#asWKT"];
+        var geojson = this.transformPointCrs(wkt);
+        this.props.renderSelectedGeometryFn(geojson);
+      }
     }
+  }
+
+  transformPointCrs(coord_str) {
+    proj.defs("EPSG:4283","+proj=longlat +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +no_defs");
+    var dest_crs = new proj.Proj("EPSG:4326");    //source coordinates will be in Longitude/Latitude
+    var source_crs = new proj.Proj("EPSG:4283");
+
+    var cstr = "<http://www.opengis.net/def/crs/EPSG/0/4283> POINT(149.12153731 -35.28388695)";
+    let regexp = /<http:\/\/www.opengis.net\/def\/crs\/EPSG\/0\/(4283)> POINT\((149.12153731) (-35.28388695)\)/;
+
+    let result = cstr.match(regexp);
+    console.log(result)
+
+    let epsgCode = result[1];
+    let coord1 = Number(result[2]);
+    let coord2 = Number(result[3]);
+    var p = [coord1, coord2];   //any object will do as long as it has 'x' and 'y' properties
+    proj.transform(source_crs, dest_crs, p);      //do the transformation.  x and y are modified in place
+
+    console.log(p);
+
+    var geojson = {
+      "type": "Feature",
+      "geometry": {
+          "type": "Point",
+          "coordinates": p
+      }
+    };
+
+    console.log(geojson);
+    return geojson;
 
   }
 

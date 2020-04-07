@@ -1,7 +1,7 @@
 // @flow
 
 import React, { createRef, Component } from "react";
-import { Map, TileLayer, Marker, Popup, GeoJSON, FeatureGroup } from "react-leaflet";
+import { Leaflet, Map, TileLayer, Marker, Popup, GeoJSON, FeatureGroup, LatLng } from "react-leaflet";
 import hash from "object-hash";
 import jsonld from "jsonld";
 import parseGmlPolygon from "parse-gml-polygon";
@@ -29,6 +29,7 @@ export default class SimpleLeaflet extends Component {
     };
     this.groupRef = createRef();
     this.mapRef = createRef();
+    this.zoomRef = createRef();
 
   }
 
@@ -53,7 +54,17 @@ export default class SimpleLeaflet extends Component {
       const map = this.mapRef.current.leafletElement;
       const group = this.groupRef.current.leafletElement;
       var bounds = group.getBounds();
-      map.fitBounds(bounds);
+
+      //detect if bounds is a point
+      if( (bounds._northEast.lat == bounds._southWest.lat) && (bounds._northEast.lng == bounds._southWest.lng)) {
+        bounds._northEast.lat += 0.000000000001;
+        bounds._northEast.lng += 0.000000000001;
+        map.setView([bounds._northEast.lat, bounds._northEast.lng], 18);
+      }
+      else {
+        console.log(bounds);
+        map.fitBounds(bounds);
+      }
     }
   }
 
