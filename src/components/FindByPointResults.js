@@ -232,6 +232,11 @@ export default class FindByPointResults extends Component {
     this.removeJobFromQueue(jobid);
   }
 
+  viewFeatureCallback = (e, item_uri) => {
+    console.log("Search result clicked: " + item_uri); 
+    this.props.renderResultSummaryFn(item_uri)
+  }
+
   updateArrDivs = (locations) => {
     var arrDivs = [];
     var here = this;
@@ -255,6 +260,9 @@ export default class FindByPointResults extends Component {
           <div className="mainPageResultListItem" key={index}>
             <div>
                 Feature: <a target="feature" href={item['feature']}>{item['feature']}</a> <span>&nbsp;</span>
+                <Button variant="outline-primary" size="sm" onClick={(e) => here.viewFeatureCallback(e, item['feature'])}>
+                  View feature
+                </Button>
                 <Button variant="outline-primary" size="sm" onClick={(e) => here.handleViewGeomClick(e, item['geometry'])}>
                   View area
                 </Button>
