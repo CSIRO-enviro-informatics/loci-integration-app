@@ -59,7 +59,7 @@ export default class SimpleLeaflet extends Component {
       if( (bounds._northEast.lat == bounds._southWest.lat) && (bounds._northEast.lng == bounds._southWest.lng)) {
         bounds._northEast.lat += 0.000000000001;
         bounds._northEast.lng += 0.000000000001;
-        map.setView([bounds._northEast.lat, bounds._northEast.lng], 18);
+        map.setView([bounds._northEast.lat, bounds._northEast.lng], 15);
       }
       else {
         console.log(bounds);

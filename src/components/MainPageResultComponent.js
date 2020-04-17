@@ -4,13 +4,16 @@ import React, { createRef, Component } from 'react'
 import Container from "react-bootstrap/Container";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
-import FindByPointWithinsResults from './FindByPointWithinsResults'
-import FindByPointOverlapResults from './FindByPointOverlapResults'
-import FindByPointContainsResults from './FindByPointContainsResults'
+import FindByPointWithinsResults from './FindByPointWithinsResults';
+import FindByPointOverlapResults from './FindByPointOverlapResults';
+import FindByPointContainsResults from './FindByPointContainsResults';
+import FeatureInfoItem from './FeatureInfoItem';
 import Tabs from "react-bootstrap/Tabs";
 import Tab from "react-bootstrap/Tab";
 import FindByPointGraphVisualiser from './FindByPointGraphVisualiser';
 import proj from 'proj4';
+import * as jsonld from 'jsonld';
+
 
 
 export default class MainPageResultComponent extends Component {
@@ -20,7 +23,12 @@ export default class MainPageResultComponent extends Component {
     this.state = {
       contextLocationLookups: {},
       location_uri: this.props.location_uri,
-      locationResourceData: {}
+      locationResourceData: {},
+      featureInfo: {
+        "@id" : "",
+        "rdfs:label" : "",
+        "@type" : "",
+      }
     }
 
   }
@@ -140,27 +148,31 @@ export default class MainPageResultComponent extends Component {
     curr[uri][relation] = data;
 
     //fetch the geometry info
-    fetch(uri, {
+    //TODO: Replace workaround
+    var thiscls = this;
+    var proxy_uri = "https://cors-proxy.loci.cat/" + uri
+    fetch(proxy_uri, {
       method: "GET",
-      //mode: "no-cors",
+      mode: "cors",
       headers: {
-        "Accept": "application/ld+json"
+        "Accept": "application/ld+json",
+        "origin" : "explorer.loci.cat",
+        "x-requested-with" : "explorer"
       }
     }).then(function(response) {
-      //response.status     //=> number 100–599
-      //response.statusText //=> String
-      //response.headers    //=> Headers
-      //response.url        //=> String
-      console.log("fetch status: " + response.status);
-      console.log("fetch: " + response.text());
       return response.json();
-    }, function(error) {
-      //error.message //=> String
-      console.log("fetch error: " + error);
     })
-    .then(function(data) {
-      // Do stuff with the JSON
-      //console.log("fetch: " + data);
+    .then(function(json) {
+      console.log('Request successful', json);
+      const compacted =  jsonld.compact(json, 'https://loci.cat/json-ld/loci-context.jsonld')
+      //const compacted =  jsonld.compact(json, 'https://raw.githubusercontent.com/CSIRO-enviro-informatics/loci.cat/gh-pages/json-ld/loci-context.jsonld')
+        .then(function(compacted) {
+          console.log(JSON.stringify(compacted, null, 2));
+          thiscls.updateFeatureInfo(compacted);
+        });
+    })
+    .catch(function(error) {
+      console.log('Request failed', error)
     });
 
     this.setState({
@@ -168,7 +180,45 @@ export default class MainPageResultComponent extends Component {
     })
   }
 
- 
+  updateFeatureInfo(data) {
+    var thisFeatureInfo = {
+      "@id" : "",
+      "rdfs:label" : "",
+      "@type" : "",      
+    }
+
+    var featureIdx = {};
+    var featureTypeWhiteList = [
+      'gnaf:Address', 'gnaf:StreetLocality', 'gnaf:Locality', 
+      'asgs:StatisticalAreaLevel1', 'asgs:StatisticalAreaLevel2', 'asgs:StatisticalAreaLevel3', 'asgs:StatisticalAreaLevel4', 
+      'asgs:MeshBlock', 'asgs:StateOrTerritory', 'asgs:SignificantUrbanArea', 'asgs:GreaterCapitalCityStatisticalArea', 
+      'asgs:RemotenessArea', 'asgs:IndigenousLocation', 'asgs:IndigenousArea', 'asgs:IndigenousRegion', 
+      'asgs:UrbanCentreAndLocality', 'asgs:SectionOfStateRange', 'asgs:SectionOfState', 
+      'asgs:LocalGovernmentArea', 'asgs:CommonwealthElectoralDivision', 'asgs:StateSuburb', 'asgs:NaturalResourceManagementRegion', 
+      'geofabric:ContractedCatchment', 'geofabric:RiverRegion', 'geofabric:DrainageDivision'      
+    ]
+
+    data["@graph"].map((item) => {
+      featureIdx[item["@id"]] = item;
+
+      if(item['@id'] == this.state.location_uri) {
+        thisFeatureInfo = item; 
+      }
+      /*
+      if('@type' in item){ 
+        console.log(item['@type']);
+        if(featureTypeWhiteList.includes(item['@type'])) {
+          thisFeatureInfo = item;        
+        }
+      }
+      */
+    })
+
+
+    this.setState({
+      featureInfo: thisFeatureInfo
+    })
+  }
 
   loadGeom(location_resource) {
 
@@ -238,8 +288,8 @@ export default class MainPageResultComponent extends Component {
     var dest_crs = new proj.Proj("EPSG:4326");    //source coordinates will be in Longitude/Latitude
     var source_crs = new proj.Proj("EPSG:4283");
 
-    var cstr = "<http://www.opengis.net/def/crs/EPSG/0/4283> POINT(149.12153731 -35.28388695)";
-    let regexp = /<http:\/\/www.opengis.net\/def\/crs\/EPSG\/0\/(4283)> POINT\((149.12153731) (-35.28388695)\)/;
+    var cstr = coord_str;
+    let regexp = /<http:\/\/www.opengis.net\/def\/crs\/EPSG\/0\/(.*)> POINT\((.*) (.*)\)/;
 
     let result = cstr.match(regexp);
     console.log(result)
@@ -371,7 +421,9 @@ export default class MainPageResultComponent extends Component {
           <Col sm={12}>
             <div class="summaryResultTitle"> Showing summary for Loc-I feature: <a href={uri}>{uri}</a> 
             </div>
-
+            <div>
+              <FeatureInfoItem item={this.state.featureInfo}/>
+            </div>
             {divMain}
 
 
