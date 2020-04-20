@@ -403,7 +403,7 @@ export default class MainPageResultComponent extends Component {
 
     var here = this;
     var divMain = (
-      <div>
+      <div className="overflow-auto">
             <div><FindByPointGraphVisualiser graphData={graphData} callback={this.props.renderResultSummaryFn} /></div>
             <ul>
                 <li>
@@ -418,7 +418,7 @@ export default class MainPageResultComponent extends Component {
     return (
       <Container>
         <Row>
-          <Col sm={12}>
+          <Col sm={12} className="fullheight-results-main">
             <div class="summaryResultTitle"> Showing summary for Loc-I feature: <a href={uri}>{uri}</a> 
             </div>
             <div>
