@@ -190,15 +190,21 @@ export default class FindByPointGraphVisualiser extends Component {
               d.y = height /2;
               return d.x;
             }
-            return d.target.x; 
+            //console.log(d);
+            if(d.target && typeof d.target === 'object' && d.target !== null &&  'x' in d.target) {
+              return d.target.x; 
+            }
           })
           .attr("y2", d => { 
             if(d.label == 'root') {
               d.x = width / 2;
               d.y = height /2;
               return d.y;
+            } 
+            //console.log(d);
+            if(d.target && typeof d.target === 'object' && d.target !== null &&  'y' in d.target) {
+              return d.target.y; 
             }
-            return d.target.y; 
           });
 
         node

@@ -50,8 +50,6 @@ export default class SearchPageComponent extends Component {
     })
   }
   search() {
-    //this.props.parentCallback("Hey Popsie, How’s it going?"); <FontAwesomeIcon className='searchfontawesomeicon' icon={faSearch}>search</FontAwesomeIcon> 
-
     this.props.searchCallback(this.state.query)
 
   }

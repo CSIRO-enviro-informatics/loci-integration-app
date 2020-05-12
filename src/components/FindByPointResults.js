@@ -34,7 +34,8 @@ export default class FindByPointResults extends Component {
       regionTypeFilter: [],
       updateResultList: false,
       filteredLocations: {},
-      usefilteredLocations: false
+      usefilteredLocations: false,
+      findByLocationError: false
     }
     this.updateWithins = this.updateWithins.bind(this);
     this.updateLocations = this.updateLocations.bind(this);
@@ -70,7 +71,14 @@ export default class FindByPointResults extends Component {
         regionTypes: regionTypes,
         graphData: graphData
       });         
-      if('res' in this.props.locations) {
+      //check if errorMessage
+      if(this.props.locations == 'errorMessage') {
+        var arrDivs = this.updateArrDivs(this.props.locations);
+        this.setState({
+          arrDivs: arrDivs
+        });
+      }
+      else if('res' in this.props.locations) {
         var arrDivs = this.updateArrDivs(this.props.locations);
         this.setState({
           arrDivs: arrDivs
@@ -224,6 +232,11 @@ export default class FindByPointResults extends Component {
     this.removeJobFromQueue(jobid);
   }
 
+  viewFeatureCallback = (e, item_uri) => {
+    console.log("Search result clicked: " + item_uri); 
+    this.props.renderResultSummaryFn(item_uri)
+  }
+
   updateArrDivs = (locations) => {
     var arrDivs = [];
     var here = this;
@@ -247,6 +260,9 @@ export default class FindByPointResults extends Component {
           <div className="mainPageResultListItem" key={index}>
             <div>
                 Feature: <a target="feature" href={item['feature']}>{item['feature']}</a> <span>&nbsp;</span>
+                <Button variant="outline-primary" size="sm" onClick={(e) => here.viewFeatureCallback(e, item['feature'])}>
+                  View feature
+                </Button>
                 <Button variant="outline-primary" size="sm" onClick={(e) => here.handleViewGeomClick(e, item['geometry'])}>
                   View area
                 </Button>
@@ -261,6 +277,13 @@ export default class FindByPointResults extends Component {
           </div>
         ));
       });        
+    }
+    else {
+      arrDivs.push( (
+        <div className="mainPageResultError">Error: Find By Location API encountered an unexpected error. Please try again later.</div>));
+      here.setState({
+          findByLocationError: true
+      });
     }
     return arrDivs;
   }
@@ -330,7 +353,9 @@ export default class FindByPointResults extends Component {
             'children': []
           };
   
-          if (uri in this.state.contextLocationLookups && 'within' in this.state.contextLocationLookups[uri]) {
+          if (uri in this.state.contextLocationLookups && 'within' in this.state.contextLocationLookups[uri] 
+               && this.state.contextLocationLookups[uri]['within'].locations instanceof Array 
+              && this.state.contextLocationLookups[uri]['within'].locations.length > 0) {
             this.state.contextLocationLookups[uri]['within'].locations.forEach(item => {
               withinChild.children.push({
                 'name': item,
@@ -345,8 +370,10 @@ export default class FindByPointResults extends Component {
             'label': "overlap",
             'children': []
           };
-          if (uri in this.state.contextLocationLookups && 'overlap' in this.state.contextLocationLookups[uri]) {
-            this.state.contextLocationLookups[uri]['overlap'].overlaps.forEach(item => {
+          if (uri in this.state.contextLocationLookups && 'overlap' in this.state.contextLocationLookups[uri]
+            && this.state.contextLocationLookups[uri]['overlap'].locations instanceof Array 
+            && this.state.contextLocationLookups[uri]['overlap'].locations.length > 0) {
+          this.state.contextLocationLookups[uri]['overlap'].overlaps.forEach(item => {
               overlapChild.children.push({
                 'name': item.uri,
                 'label': item.uri,
@@ -372,6 +399,7 @@ export default class FindByPointResults extends Component {
     }
     console.log(this.state.jobqueue);
     console.log(rootObj);
+    /* ignore graphdata 
     graphData = this.convertTreeObjToD3Data(null, rootObj, graphData, {});
     console.log(graphData);
 
@@ -380,6 +408,7 @@ export default class FindByPointResults extends Component {
         graphData: graphData
       });  
     }
+    */
 
   }
   handleViewGeomClick(e, geom_uri) {
@@ -471,6 +500,7 @@ export default class FindByPointResults extends Component {
       </Dropdown.Menu>
     </Dropdown>
     )
+    /*
     var validArrDivsOrBlank = (arrDivs.length > 0) ?
       (
         <div>
@@ -481,7 +511,16 @@ export default class FindByPointResults extends Component {
       )
       :
       <div></div>;
-
+      */
+     var validArrDivsOrBlank = (arrDivs.length > 0) ?
+      (
+        <div>
+            {filters}
+            {arrDivs}
+            </div>        
+      )
+      :
+      <div></div>;
     console.log(this.state.jobqueue);
 
     return (
