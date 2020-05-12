@@ -135,7 +135,7 @@ export default class SearchResultWidget extends Component {
     return (
       <Container fluid='true'>        
         <Row>
-          <Col sm={12}>
+          <Col sm={12}  className="fullheight-results-main">
                 {divToDisplay}
           </Col>
         </Row>

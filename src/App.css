@@ -19,36 +19,55 @@ html,body {
 
 @media (min-height: 200px) {
   .fullheight-results {
-    height: 45vw;
-    
+    height: 80vh;    
+    overflow-y: scroll;
+  }
+  .fullheight-results-main {
+    height: 80vh;    
     overflow-y: scroll;
   }
 }
 
 @media (min-height: 300px) {
   .fullheight-results {
-    height: 600px;
+    height: 65vh;    
+    overflow-y: scroll;
+  }
+  .fullheight-results-main {
+    height: 55vh;    
     overflow-y: scroll;
   }
 }
 
 @media (min-height: 600px) {
   .fullheight-results {
-    height: 600px;
-    overflow-y: scroll;    
+    height: 70vh;    
+    overflow-y: scroll;
+  }
+  .fullheight-results-main {
+    height: 80vh;    
+    overflow-y: scroll;
   }
 }
 @media (min-height: 800px) {
   .fullheight-results {
-    height: 800px;
+    height: 85vh;    
+    overflow-y: scroll;
+  }
+  .fullheight-results-main {
+    height: 85vh;    
     overflow-y: scroll;
   }
 }
 @media (min-height: 1000px) {
   .fullheight-results {
-    height: 45vw;
+    height: 85vh;
     overflow-y: scroll;
     width: 100%
+  }
+  .fullheight-results-main {
+    height: 85vh;    
+    overflow-y: scroll;    
   }
 }
 
