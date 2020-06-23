@@ -141,9 +141,15 @@ export default class FindByPointGraphVisualiser extends Component {
             }
             );
             
-          tooltip.html(d.label)
+          tooltip.html(
+            function() {
+                  return "<div class='graphtooltiptext'>" + d.label + "</div>";
+               }
+            )
+            //.style('left', (d.x + 20)  +'px')
+            //.style('top', (d.y + 40 )  + 'px')
             .style('left', (d.x + 20)  +'px')
-            .style('top', (d.y + 40 )  + 'px')
+            .style('top', (d.y + 50)  + 'px')
             .style('opacity', .9);
         }).on('mouseout', (d,i) => {
           tooltip.style('opacity', 0)

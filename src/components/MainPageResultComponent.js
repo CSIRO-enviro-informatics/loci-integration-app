@@ -34,6 +34,14 @@ export default class MainPageResultComponent extends Component {
   }
 
   componentDidMount() {
+    this.renderCurrentGeom();
+    this.setState({
+      contextLocationLookups: {},
+      location_uri: this.props.location_uri
+    });
+  }
+
+  renderCurrentGeom() {
     fetch(process.env.REACT_APP_LOCI_INTEGRATION_API_ENDPOINT + "/resource?uri=" + this.props.location_uri)
         .then(res => res.json())
         .then(
@@ -62,6 +70,8 @@ export default class MainPageResultComponent extends Component {
 
   componentDidUpdate() {
     if(this.props.location_uri != this.state.location_uri) {
+      this.renderCurrentGeom();
+
       this.setState( {
         location_uri: this.props.location_uri
       })

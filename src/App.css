@@ -179,8 +179,13 @@ span.logo {
   padding: 10px;
   z-index:10000;
   border-radius: 5px;
-
 }
+
+.graphtooltiptext {
+  max-width: 200px;
+  word-wrap: break-word;
+}
+
 
 .nodes circle {
   stroke: #fff;
