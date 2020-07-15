@@ -301,3 +301,7 @@ circle.contain{
 .search-result-links .btn-toolbar > *  {
   margin-right: 5px;
 }
+
+.feature-res-btn-list > * {
+  display: inline-block;
+}

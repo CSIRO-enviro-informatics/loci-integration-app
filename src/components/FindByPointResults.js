@@ -5,6 +5,7 @@ import Container from "react-bootstrap/Container";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Dropdown from "react-bootstrap/Dropdown";
+import DropdownButton from "react-bootstrap/DropdownButton";
 import FindByPointWithinsResults from './FindByPointWithinsResults'
 import FindByPointOverlapResults from './FindByPointOverlapResults'
 import Tabs from "react-bootstrap/Tabs";
@@ -237,6 +238,50 @@ export default class FindByPointResults extends Component {
     this.props.renderResultSummaryFn(item_uri)
   }
 
+  downloadFeatureGeom = (item, view) => {
+    console.log("downloadFeatureGeom..."); 
+    console.log(item); 
+    console.log(view); 
+  }
+
+  handleSelect(eventKey, event) {
+    console.log(eventKey); 
+    console.log(event); 
+  }
+
+  testclick(eventKey, event) {
+    console.log("testclick"); 
+    console.log(eventKey); 
+    console.log(event); 
+  }
+  testSelect(eventKey, event) {
+    console.log("testSelect"); 
+    console.log(eventKey); 
+    console.log(JSON.parse(eventKey))
+    console.log(event); 
+  }
+
+  downloadResource(file, text) { 
+              
+    //creating an invisible element 
+    var element = document.createElement('a'); 
+    element.setAttribute('href',  
+    'data:text/plain;charset=utf-8, ' 
+    + encodeURIComponent(text)); 
+    element.setAttribute('download', file); 
+  
+    // Above code is equivalent to 
+    // <a href="path of file" download="file name"> 
+  
+    document.body.appendChild(element); 
+  
+    //onClick property 
+    element.click(); 
+  
+    document.body.removeChild(element); 
+} 
+  
+
   updateArrDivs = (locations) => {
     var arrDivs = [];
     var here = this;
@@ -259,16 +304,24 @@ export default class FindByPointResults extends Component {
         arrDivs.push( (
           <div className="mainPageResultListItem" key={index}>
             <div>
-                Feature: <a target="feature" href={item['feature']}>{item['feature']}</a> <span>&nbsp;</span>
-                <Button variant="outline-primary" size="sm" onClick={(e) => here.viewFeatureCallback(e, item['feature'])}>
-                  View feature
-                </Button>
-                <Button variant="outline-primary" size="sm" onClick={(e) => here.handleViewGeomClick(e, item['geometry'])}>
-                  View area
-                </Button>
-                <Button variant="outline-primary" size="sm" href={item['geometry']} target="gds">
-                    View in GDS
-                </Button>                
+                Feature: <a target="feature" href={item['feature']}>{item['feature']}</a> <span>&nbsp;</span> <br/>
+                <div className="feature-res-btn-list">
+                  <Button variant="outline-primary" size="sm" onClick={(e) => here.viewFeatureCallback(e, item['feature'])}>
+                    View feature
+                  </Button>
+                  <Button variant="outline-primary" size="sm" onClick={(e) => here.handleViewGeomClick(e, item['geometry'])}>
+                    View area
+                  </Button>
+                  <Button variant="outline-primary" size="sm" href={item['geometry']} target="gds">
+                      View in GDS
+                  </Button>            
+                  <DropdownButton  onSelect={here.handleSelect.bind(this)} onSelect={here.downloadFeatureGeom(item, 'application/json')} id="dropdown-basic-button" 
+                        size="sm" variant="outline-primary" title="Download Geometry">
+                    <Dropdown.Item  href={item['geometry']+"?_format=application/json&_view=geometryview"} target='notheregeojson'>GeoJSON</Dropdown.Item>
+                    <Dropdown.Item  href={item['geometry']+"?_format=text/plain&_view=geometryview"} target='notherewkt'>WKT</Dropdown.Item>
+                    <Dropdown.Item  href={item['geometry']+"?_format=text/plain&_view=geometryview"} target='notherettl'>RDF/Turtle</Dropdown.Item>
+                  </DropdownButton>    
+                </div>
                 <br/>Dataset: {item['dataset']}
                       <FindByPointWithinsResults locationUri={item['feature']} jobid={withinJobId}  errorCallback={here.errorCallback} parentCallback={here.callbackFunction} />
                       <FindByPointOverlapResults locationUri={item['feature']} jobid={overlapJobId}  errorCallback={here.errorCallback} parentCallback={here.callbackFunction} />
