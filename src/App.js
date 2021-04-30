@@ -29,7 +29,7 @@ export default function App() {
           <li>
             <Link to="/">
                  <span className="logo"><img id='logo' src="loci-logo.png"/></span> 
-                 Loc-I Explorer
+                 Loc-I Time Explorer (alpha)
             </Link>
           </li>
           <li>

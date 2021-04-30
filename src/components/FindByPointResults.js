@@ -36,7 +36,8 @@ export default class FindByPointResults extends Component {
       updateResultList: false,
       filteredLocations: {},
       usefilteredLocations: false,
-      findByLocationError: false
+      findByLocationError: false,
+      isWaiting: false
     }
     this.updateWithins = this.updateWithins.bind(this);
     this.updateLocations = this.updateLocations.bind(this);
@@ -55,23 +56,36 @@ export default class FindByPointResults extends Component {
       this.setState({
         latlng: this.props.latlng,
         contextLocationLookups: {},
-        jobqueue: {},
         graphData: graphData
       });
       
+    }
+    
+
+    if(this.props.isWaiting != this.state.isWaiting) {
+      this.setState( {isWaiting: this.props.isWaiting});
     }
 
     if (this.props.locations != this.state.locations) {
       var regionTypes = this.getRegionTypes(this.props.locations);
 
+      var locations_sorted = this.props.locations.sort(function(a, b) {
+        if (a.uri < a.uri) return -1;
+        if (a.uri > a.uri) return 1;
+        return 0;
+      });
+
       this.setState({
-        locations: this.props.locations,
+        locations: locations_sorted,
         orig_locations: this.props.locations,
         usefilteredLocations: false,
         jobqueue: {},
         regionTypes: regionTypes,
         graphData: graphData
       });         
+
+
+      /*
       //check if errorMessage
       if(this.props.locations == 'errorMessage') {
         var arrDivs = this.updateArrDivs(this.props.locations);
@@ -84,41 +98,17 @@ export default class FindByPointResults extends Component {
         this.setState({
           arrDivs: arrDivs
         })
-      }    
+      } 
+      */   
+      if(this.props.locations.length > 0) {
+        var arrDivs = this.updateArrDivs(this.props.locations);
+        this.setState({
+          arrDivs: arrDivs
+        });
+      }
       
     }    
-    if(this.state.isGraphLoading == true && Object.keys(this.state.jobqueue).length == 0){
-      
-      if(this.state.usefilteredLocations) {
-        this.updateGraphData(this.state.filteredLocations);      
-      }
-      else {
-        this.updateGraphData(this.state.locations);      
-      }
-      this.setState({
-        isGraphLoading: false
-      })
-    } 
 
-    if(this.state.updateResultList == true) {
-      var filteredLocations = this.getFilteredLocationList();
-      if('res' in filteredLocations) {
-        var arrDivs = this.updateArrDivs(filteredLocations);
-        this.setState({
-          arrDivs: arrDivs,
-          filteredLocations: filteredLocations,
-          usefilteredLocations: true,
-          isGraphLoading: true
-        });
-        //this.updateGraphData(filteredLocations);
-
-      }   
-      this.setState({
-        updateResultList: false
-      }) 
-      
-    }
-    console.log(this.state.jobqueue);
   }
 
   getFilteredLocationList() {
@@ -287,44 +277,31 @@ export default class FindByPointResults extends Component {
     var here = this;
     //change this to iterate through a list rather than a location dict obj
     
-    if(locations && locations != 'errorMessage' && 'res' in locations) {
+    if(locations) {
       //this.state.locations['res'].forEach(function(item, index) {
       //  console.log(item);
       //});
       
-      locations.res.forEach(function(item, index) {
-        var withinJobId = index + "-within";
-        here.addJobToQueue(withinJobId, {});
-        var overlapJobId = index + "-overlap";
-        here.addJobToQueue(overlapJobId, {});
-        here.setState({
-          isGraphLoading: true
-        });
-
+      locations.forEach(function(item, index) {
+        
         arrDivs.push( (
           <div className="mainPageResultListItem" key={index}>
             <div>
-                Feature: <a target="feature" href={item['feature']}>{item['feature']}</a> <span>&nbsp;</span> <br/>
+                Feature: <a target="feature" href={item['uri']}>{item['uri']}</a> <span>&nbsp;</span> <br/>
                 <div className="feature-res-btn-list">
-                  <Button variant="outline-primary" size="sm" onClick={(e) => here.viewFeatureCallback(e, item['feature'])}>
-                    View feature
-                  </Button>
-                  <Button variant="outline-primary" size="sm" onClick={(e) => here.handleViewGeomClick(e, item['geometry'])}>
-                    View area
-                  </Button>
-                  <Button variant="outline-primary" size="sm" href={item['geometry']} target="gds">
-                      View in GDS
-                  </Button>            
                   <DropdownButton  onSelect={here.handleSelect.bind(this)} onSelect={here.downloadFeatureGeom(item, 'application/json')} id="dropdown-basic-button" 
-                        size="sm" variant="outline-primary" title="Download Geometry">
-                    <Dropdown.Item  href={item['geometry']+"?_format=application/json&_view=geometryview"} target='notheregeojson'>GeoJSON</Dropdown.Item>
-                    <Dropdown.Item  href={item['geometry']+"?_format=text/plain&_view=geometryview"} target='notherewkt'>WKT</Dropdown.Item>
-                    <Dropdown.Item  href={item['geometry']+"?_format=text/plain&_view=geometryview"} target='notherettl'>RDF/Turtle</Dropdown.Item>
-                  </DropdownButton>    
+                        size="sm" variant="outline-primary" title="View feature">
+                    <Dropdown.Item  href={"#hello"} target='nothere1'>Get info</Dropdown.Item>
+                    <Dropdown.Item  href={"#hello"} target='nothere1'>Find at a point in time</Dropdown.Item>
+                    <Dropdown.Item  href={"#hello2"} target='nothere2'>Across time</Dropdown.Item>
+                  </DropdownButton>  
+                  <DropdownButton  onSelect={here.handleSelect.bind(this)} onSelect={here.downloadFeatureGeom(item, 'application/json')} id="dropdown-basic-button" 
+                        size="sm" variant="outline-primary" title="Find temporal intersection">
+                    <Dropdown.Item  href={"#hello"} target='nothere1'>Single time point</Dropdown.Item>
+                    <Dropdown.Item  href={"#hello2"} target='nothere2'>Different time points</Dropdown.Item>
+                    <Dropdown.Item  href={"#hello3"} target='nothere3'>Time span</Dropdown.Item>
+                  </DropdownButton>  
                 </div>
-                <br/>Dataset: {item['dataset']}
-                      <FindByPointWithinsResults locationUri={item['feature']} jobid={withinJobId}  errorCallback={here.errorCallback} parentCallback={here.callbackFunction} />
-                      <FindByPointOverlapResults locationUri={item['feature']} jobid={overlapJobId}  errorCallback={here.errorCallback} parentCallback={here.callbackFunction} />
                 
             </div>
           </div>
@@ -342,128 +319,6 @@ export default class FindByPointResults extends Component {
   }
 
 
-  addJobToQueue = (key, j) => {    
-    if(key in this.state.jobqueue) {
-      //exists in queue!
-      return
-    }
-    else {
-      var newqueue = this.state.jobqueue;
-      newqueue[key] = j;
-      this.setState({
-        jobqueue: newqueue
-      })
-      console.log("added " + key + " from queue");
-    }     
-  }
-  removeJobFromQueue = (key) => {    
-    console.log("removing " + key + " from queue");
-
-    if(key in this.state.jobqueue) {
-      delete this.state.jobqueue[key];
-      console.log("removed " + key + " from queue");
-      console.log()
-    }
-  }
-
-
-  updateGraphData = (locations) => {
-    //this.setState({
-    //  graphData: g
-    //});
-
-    var graphData = { "nodes": [], "links": [] };
-
-    var rootObj = {
-      'name': 'root',
-      'label': 'root',
-      'class': "root",
-      'fixed': true,
-      'children': []
-    };
-    
-
-    if(locations != 'errorMessage' && 'res' in locations) {
-      locations.res.forEach(
-        (resItem, index) => {
-        var dataset_label = resItem['dataset'];
-        var uri = resItem['feature'];
-        var c = {
-          'name': dataset_label,
-          'label': dataset_label,
-          'children': []
-        };
-  
-        
-          var node = {
-            'name': uri,
-            'label': uri,
-            'children': []
-          };
-          var withinChild = {
-            'name': uri + "-within",
-            'label': "within",
-            'children': []
-          };
-  
-          if (uri in this.state.contextLocationLookups && 'within' in this.state.contextLocationLookups[uri] 
-               && this.state.contextLocationLookups[uri]['within'].locations instanceof Array 
-              && this.state.contextLocationLookups[uri]['within'].locations.length > 0) {
-            this.state.contextLocationLookups[uri]['within'].locations.forEach(item => {
-              withinChild.children.push({
-                'name': item,
-                'label': item,
-                'children': []
-              });
-            });
-          }
-  
-          var overlapChild = {
-            'name': uri + "-overlap",
-            'label': "overlap",
-            'children': []
-          };
-          if (uri in this.state.contextLocationLookups && 'overlap' in this.state.contextLocationLookups[uri]
-            && this.state.contextLocationLookups[uri]['overlap'].locations instanceof Array 
-            && this.state.contextLocationLookups[uri]['overlap'].locations.length > 0) {
-          this.state.contextLocationLookups[uri]['overlap'].overlaps.forEach(item => {
-              overlapChild.children.push({
-                'name': item.uri,
-                'label': item.uri,
-                'children': []
-              });
-            });
-          }
-  
-          if(withinChild['children'].length > 0) {
-            node.children.push(withinChild);
-          }          
-          if(overlapChild['children'].length > 0) {
-            node.children.push(overlapChild);
-          }
-  
-          c['children'].push(node);
-        
-          
-  
-        rootObj['children'].push(c);
-      });
-  
-    }
-    console.log(this.state.jobqueue);
-    console.log(rootObj);
-    /* ignore graphdata 
-    graphData = this.convertTreeObjToD3Data(null, rootObj, graphData, {});
-    console.log(graphData);
-
-    if(graphData != this.state.graphData) {
-      this.setState({
-        graphData: graphData
-      });  
-    }
-    */
-
-  }
   handleViewGeomClick(e, geom_uri) {
     console.log('this is:', e);
     console.log('geometry uri:', geom_uri);
@@ -505,13 +360,6 @@ export default class FindByPointResults extends Component {
 
   }
 
-  handleFilterRegionType(regionTypeId) {
-    console.log("region type to filter: " + regionTypeId);
-    this.setState({
-      regionTypeFilter: [ regionTypeId ],
-      updateResultList: true
-    })
-  }
 
   render() {
     const labelMapping = {
@@ -527,17 +375,19 @@ export default class FindByPointResults extends Component {
       message = (<div><h3>Results</h3></div>)
     }
 
+    console.log(this.state.locations);
     var pointMessage = (<p></p>)
     if (this.state.latlng) {
       pointMessage = (<p>Point selected on map: {this.state.latlng}</p>)
     }
 
+    /*
     var gd = this.state.graphData;
     console.log(gd);
-
+*/
 
     var arrDivs = this.state.arrDivs;
-  
+  /*
     var regionTypes = this.state.regionTypes;
 
     var filters = (
@@ -553,6 +403,7 @@ export default class FindByPointResults extends Component {
       </Dropdown.Menu>
     </Dropdown>
     )
+    */
     /*
     var validArrDivsOrBlank = (arrDivs.length > 0) ?
       (
@@ -568,13 +419,16 @@ export default class FindByPointResults extends Component {
      var validArrDivsOrBlank = (arrDivs.length > 0) ?
       (
         <div>
-            {filters}
             {arrDivs}
             </div>        
       )
       :
       <div></div>;
     console.log(this.state.jobqueue);
+
+    if(this.state.isWaiting) {
+      validArrDivsOrBlank = (<div><img src="/spinner.gif"/></div>)
+    }
 
     return (
       <div className="h-100" >
@@ -588,7 +442,7 @@ export default class FindByPointResults extends Component {
 
             {validArrDivsOrBlank}
 
-
+            
 
 
 

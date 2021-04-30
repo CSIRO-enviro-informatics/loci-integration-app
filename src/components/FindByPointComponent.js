@@ -10,6 +10,7 @@ import FindByPointResults from "./FindByPointResults"
 import SearchInputWidget from "./SearchInputWidget"
 import SearchResultWidget from './SearchResultWidget';
 import MainPageResultComponent from './MainPageResultComponent';
+import WaitingWidget from './WaitingWidget';
 
 export default class FindByPointComponent extends Component {
   constructor(props) {
@@ -24,7 +25,8 @@ export default class FindByPointComponent extends Component {
       findByPointMode: false,
       searchQuery: "",
       curr_location_uri: null,
-      geometryGeojsonData: null
+      geometryGeojsonData: null,
+      waiting_for_api: false
     }
     this.updateResult = this.updateResult.bind(this);
 
@@ -66,8 +68,8 @@ export default class FindByPointComponent extends Component {
     console.log(listLocations);
 
     this.setState({
-      num_locations: r.meta.count,
-      locations: r.locations
+      num_locations: r.length,
+      locations: r
     })
     return r;
   }
@@ -87,6 +89,9 @@ export default class FindByPointComponent extends Component {
       }
     Object.keys(params).forEach(key => url.searchParams.append(key, params[key]))
     console.log(url);
+    this.setState({
+      waiting_for_api: true
+    });
     fetch(url)
       .then(res => res.json())
       .then(
@@ -94,7 +99,8 @@ export default class FindByPointComponent extends Component {
           this.setState({
             jsonResults: result,
             queryResults: this.formatResults(result),
-            geometryGeojsonData: null
+            geometryGeojsonData: null,
+            waiting_for_api: false
           });
           console.log(result);
         },
@@ -143,27 +149,29 @@ export default class FindByPointComponent extends Component {
     var ll = null;
     var numLoc = 0;
     var locations = {};
+    var waiting = this.state.waiting_for_api;
 
     if (this.state.latlng) {
       ll = this.state.latlng.lat.toString() + ", " + this.state.latlng.lng.toString();
       locations = this.state.locations;
       numLoc = this.state.num_locations;
+      waiting = this.state.waiting_for_api;
     }
 
     var componentToLoad;
-    if (this.state.resultsMode == "SEARCH") {
-      componentToLoad = (<SearchResultWidget renderResultSummaryFn={this.renderResultSummaryFn} query={this.state.searchQuery} />) 
-    } 
-    else if (this.state.resultsMode == "FIND_AT_POINT") {      
-      componentToLoad = (<FindByPointResults latlng={ll} locations={locations} count={numLoc} renderSelectedGeometryFn={this.renderSelectedGeometryFn} renderResultSummaryFn={this.renderResultSummaryFn}/>)
-    }
-    else if (this.state.resultsMode == "RESULT_SUMMARY") {
-      componentToLoad = (<MainPageResultComponent location_uri={this.state.curr_location_uri} renderSelectedGeometryFn={this.renderSelectedGeometryFn} renderResultSummaryFn={this.renderResultSummaryFn}/>)
-    }
-    else { //default is an empty div
-      componentToLoad = (<div></div>)
-    }
-
+      if (this.state.resultsMode == "SEARCH") {
+        componentToLoad = (<SearchResultWidget renderResultSummaryFn={this.renderResultSummaryFn} query={this.state.searchQuery} />) 
+      } 
+      else if (this.state.resultsMode == "FIND_AT_POINT") {      
+        componentToLoad = (<FindByPointResults latlng={ll} locations={locations} isWaiting={waiting} count={numLoc} renderSelectedGeometryFn={this.renderSelectedGeometryFn} renderResultSummaryFn={this.renderResultSummaryFn}/>)
+      }
+      else if (this.state.resultsMode == "RESULT_SUMMARY") {
+        componentToLoad = (<MainPageResultComponent location_uri={this.state.curr_location_uri} renderSelectedGeometryFn={this.renderSelectedGeometryFn} renderResultSummaryFn={this.renderResultSummaryFn}/>)
+      }
+      else { //default is an empty div
+        componentToLoad = (<div></div>)
+      }    
+    
     return (
       <Container fluid='true'>
         <Row>

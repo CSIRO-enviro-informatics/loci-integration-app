@@ -76,7 +76,7 @@ html,body {
 }
 
 .App-logo {
-  height: 40vmin;
+  width: 100px;
 }
 
 .App-header {
@@ -128,7 +128,7 @@ ul.nav {
 
 
 img#logo {
-  width: 20px;
+  width: 50px;
 }
 
 span.logo {
