@@ -124,9 +124,11 @@ export default class FindByPointComponent extends Component {
   }
 
 
-  performFindAtPoint = (d) => {
+  performFindAtPoint = (d) => {    
     this.setState({
       resultsMode: "FIND_AT_POINT",
+      geometryGeojsonData: null,
+      comparisonGeometryGeojsonData: null
     });
   }
 
@@ -134,6 +136,13 @@ export default class FindByPointComponent extends Component {
     //this.setState({message: childData})
     this.setState({
       geometryGeojsonData: geojsonData
+    });
+  }
+
+  renderComparisonGeometryFn = (geojsonData) => {
+    //this.setState({message: childData})
+    this.setState({
+      comparisonGeometryGeojsonData: geojsonData
     });
   }
 
@@ -160,13 +169,26 @@ export default class FindByPointComponent extends Component {
 
     var componentToLoad;
       if (this.state.resultsMode == "SEARCH") {
-        componentToLoad = (<SearchResultWidget renderResultSummaryFn={this.renderResultSummaryFn} query={this.state.searchQuery} />) 
+        componentToLoad = (<SearchResultWidget 
+                              renderResultSummaryFn={this.renderResultSummaryFn} 
+                              query={this.state.searchQuery} 
+                              renderSelectedGeometryFn={this.renderSelectedGeometryFn} 
+                              renderComparisonGeometryFn={this.renderComparisonGeometryFn}                                                           
+                            />) 
       } 
       else if (this.state.resultsMode == "FIND_AT_POINT") {      
-        componentToLoad = (<FindByPointResults latlng={ll} locations={locations} isWaiting={waiting} count={numLoc} renderSelectedGeometryFn={this.renderSelectedGeometryFn} renderResultSummaryFn={this.renderResultSummaryFn}/>)
+        componentToLoad = (<FindByPointResults latlng={ll} locations={locations} isWaiting={waiting} count={numLoc} 
+                               renderSelectedGeometryFn={this.renderSelectedGeometryFn} 
+                               renderComparisonGeometryFn={this.renderComparisonGeometryFn}                                
+                               renderResultSummaryFn={this.renderResultSummaryFn}/>)
       }
       else if (this.state.resultsMode == "RESULT_SUMMARY") {
-        componentToLoad = (<MainPageResultComponent location_uri={this.state.curr_location_uri} renderSelectedGeometryFn={this.renderSelectedGeometryFn} renderResultSummaryFn={this.renderResultSummaryFn}/>)
+        componentToLoad = (<MainPageResultComponent 
+                              location_uri={this.state.curr_location_uri} 
+                              renderSelectedGeometryFn={this.renderSelectedGeometryFn} 
+                              renderComparisonGeometryFn={this.renderComparisonGeometryFn}
+                              renderResultSummaryFn={this.renderResultSummaryFn}
+                              />)
       }
       else { //default is an empty div
         componentToLoad = (<div></div>)
@@ -176,7 +198,10 @@ export default class FindByPointComponent extends Component {
       <Container fluid='true'>
         <Row>
           <Col sm={6}>
-            <SimpleLeaflet jsonSearchResults={this.state.jsonResults} geometryGeojson={this.state.geometryGeojsonData} inputRef={this.testFn} pointSelectCallback={this.performFindAtPoint}/>
+            <SimpleLeaflet jsonSearchResults={this.state.jsonResults} 
+                        comparisonGeometryGeojson={this.state.comparisonGeometryGeojsonData} 
+                        geometryGeojson={this.state.geometryGeojsonData} 
+                        inputRef={this.testFn} pointSelectCallback={this.performFindAtPoint}/>
           </Col>
           <Col sm={6}>
             <Row>
