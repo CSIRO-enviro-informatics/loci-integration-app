@@ -12,6 +12,9 @@ import Tabs from "react-bootstrap/Tabs";
 import Tab from "react-bootstrap/Tab";
 import FindByPointGraphVisualiser from './FindByPointGraphVisualiser';
 import Button from "react-bootstrap/Button";
+import TemporalOperationBySingleTimePoint from './temporal/TemporalOperationBySingleTimePoint';
+import ViewFeaturePointInTime from './temporal/ViewFeaturePointInTime';
+import ButtonToolbar from "react-bootstrap/ButtonToolbar";
 
 
 export default class FindByPointResults extends Component {
@@ -37,7 +40,10 @@ export default class FindByPointResults extends Component {
       filteredLocations: {},
       usefilteredLocations: false,
       findByLocationError: false,
-      isWaiting: false
+      isWaiting: false,
+      showCurrentResults: false,
+      showTemporalAPIForm: false,
+      currentTemporalFeatureURI: null
     }
     this.updateWithins = this.updateWithins.bind(this);
     this.updateLocations = this.updateLocations.bind(this);
@@ -223,11 +229,6 @@ export default class FindByPointResults extends Component {
     this.removeJobFromQueue(jobid);
   }
 
-  viewFeatureCallback = (e, item_uri) => {
-    console.log("Search result clicked: " + item_uri); 
-    this.props.renderResultSummaryFn(item_uri)
-  }
-
   downloadFeatureGeom = (item, view) => {
     console.log("downloadFeatureGeom..."); 
     console.log(item); 
@@ -271,6 +272,79 @@ export default class FindByPointResults extends Component {
     document.body.removeChild(element); 
 } 
   
+doFindTemporalIntersection = (item, view) => {
+  console.log("doFindTemporalIntersection..."); 
+  console.log(item); 
+  console.log(view); 
+}
+
+doViewFeature = (item, view) => {
+  console.log("doViewFeature..."); 
+  console.log(item); 
+  console.log(view); 
+}
+
+
+handleSelectViewFeature(eventKey, event) {
+  console.log(eventKey); 
+  console.log(event); 
+}
+
+findTemporalOperationSingleTimePointCallback = (e, item_uri, operation) => {
+  console.log("findTemporalOperationSingleTimePointCallback: " + item_uri); 
+  var mode = "FIND_TEMPORAL_INTERSECTION_SINGLE_POINT";
+  if(operation == 'intersects') {
+    mode = "FIND_TEMPORAL_INTERSECTION_SINGLE_POINT";
+  }
+  else if(operation == 'contains') {
+    mode = "FIND_TEMPORAL_CONTAINS_SINGLE_POINT";
+  }
+  else if(operation == 'within') {
+    mode = "FIND_TEMPORAL_WITHIN_SINGLE_POINT";
+  }
+  this.setState({
+    currentTemporalFeatureURI: item_uri,
+    showCurrentResults: false,
+    showTemporalAPIForm: true,
+    spatialOperation: operation,
+    mode: mode
+  });
+}
+
+findTemporalIntersectionDiffTimePointCallback = (e, item_uri) => {
+  console.log("findTemporalIntersectionDiffTimePointCallback: " + item_uri); 
+}
+
+findTemporalIntersectionTimeSpanPointCallback = (e, item_uri) => {
+  console.log("findTemporalIntersectionTimeSpanPointCallback: " + item_uri); 
+}
+
+viewFeatureGetPointInTimeCallback = (e, item_uri) => {
+  console.log("viewFeatureGetPointInTimeCallback: " + item_uri); 
+  this.setState({
+    currentTemporalFeatureURI: item_uri,
+    showCurrentResults: false,
+    showTemporalAPIForm: true,
+    mode: "VIEW_FEATURE_GET_POINT_IN_TIME"
+  });
+}
+
+viewFeatureGetAcrossTimeCallback = (e, item_uri) => {
+  console.log("viewFeatureGetAcrossTimeCallback: " + item_uri); 
+}
+
+viewFeatureCallback = (e, item_uri) => {
+  console.log("viewFeatureCallback: " + item_uri); 
+  //this.props.renderResultSummaryFn(item_uri)
+}
+
+showCurrentResults = () => {
+  this.setState({
+    showCurrentResults: true,
+    showTemporalAPIForm: false
+  })
+  console.log("in showCurrentResults")
+}
 
   updateArrDivs = (locations) => {
     var arrDivs = [];
@@ -289,24 +363,28 @@ export default class FindByPointResults extends Component {
             <div>
                 Feature: <a target="feature" href={item['uri']}>{item['uri']}</a> <span>&nbsp;</span> <br/>
                 <div className="feature-res-btn-list">
-                  <DropdownButton  onSelect={here.handleSelect.bind(this)} onSelect={here.downloadFeatureGeom(item, 'application/json')} id="dropdown-basic-button" 
-                        size="sm" variant="outline-primary" title="View feature">
-                    <Dropdown.Item  href={"#hello"} target='nothere1'>Get info</Dropdown.Item>
-                    <Dropdown.Item  href={"#hello"} target='nothere1'>Find at a point in time</Dropdown.Item>
-                    <Dropdown.Item  href={"#hello2"} target='nothere2'>Across time</Dropdown.Item>
+                <ButtonToolbar>
+
+                  <DropdownButton id="dropdown-basic-button" 
+                        size="sm" variant="outline-primary" title="View feature">                    
+                    <Dropdown.Item eventKey="viewFeatureGetPointInTime" onClick={(e) => here.viewFeatureGetPointInTimeCallback(e, item['uri'])}>Find at a point in time</Dropdown.Item>
                   </DropdownButton>  
-                  <DropdownButton  onSelect={here.handleSelect.bind(this)} onSelect={here.downloadFeatureGeom(item, 'application/json')} id="dropdown-basic-button" 
-                        size="sm" variant="outline-primary" title="Find temporal intersection">
-                    <Dropdown.Item  href={"#hello"} target='nothere1'>Single time point</Dropdown.Item>
-                    <Dropdown.Item  href={"#hello2"} target='nothere2'>Different time points</Dropdown.Item>
-                    <Dropdown.Item  href={"#hello3"} target='nothere3'>Time span</Dropdown.Item>
+                  <DropdownButton   id="dropdown-basic-button2" 
+                        size="sm" variant="outline-primary" title="Find by spatial operation">
+                    <Dropdown.Item eventKey="1" onClick={(e) => here.findTemporalOperationSingleTimePointCallback(e, item['uri'], 'intersects')}>Intersect at single time point</Dropdown.Item>                    
+                    <Dropdown.Item eventKey="1" onClick={(e) => here.findTemporalOperationSingleTimePointCallback(e, item['uri'], 'contains')}>Contains at single time point</Dropdown.Item>                    
+                    <Dropdown.Item eventKey="1" onClick={(e) => here.findTemporalOperationSingleTimePointCallback(e, item['uri'], 'within')}>Within at single time point</Dropdown.Item>                    
                   </DropdownButton>  
+                </ButtonToolbar>
                 </div>
                 
             </div>
           </div>
         ));
-      });        
+              /* <Dropdown.Item eventKey="2" onClick={(e) => here.findTemporalIntersectionDiffTimePointCallback(e, item['uri'])}>Different time points</Dropdown.Item>
+                              <Dropdown.Item eventKey="3" onClick={(e) => here.findTemporalIntersectionTimeSpanPointCallback(e, item['uri'])}>Time span</Dropdown.Item>*/
+
+      });      
     }
     else {
       arrDivs.push( (
@@ -315,6 +393,9 @@ export default class FindByPointResults extends Component {
           findByLocationError: true
       });
     }
+    this.setState({
+      showCurrentResults: true
+    });
     return arrDivs;
   }
 
@@ -366,6 +447,7 @@ export default class FindByPointResults extends Component {
       "mb": "ASGS MeshBlock",
       "cc": "Geofabric ContractedCatchment"
     }
+    var here = this;
 
     var fn = this.renderWithins;
     var contextLocationLookups = this.state.contextLocationLookups;
@@ -381,41 +463,8 @@ export default class FindByPointResults extends Component {
       pointMessage = (<p>Point selected on map: {this.state.latlng}</p>)
     }
 
-    /*
-    var gd = this.state.graphData;
-    console.log(gd);
-*/
-
     var arrDivs = this.state.arrDivs;
-  /*
-    var regionTypes = this.state.regionTypes;
-
-    var filters = (
-      <Dropdown>
-        <Dropdown.Toggle variant="light" id="dropdown-basic">
-        Filter by region types
-      </Dropdown.Toggle>
-
-      <Dropdown.Menu>
-          {regionTypes.map( (regionType, index) => (
-            <Dropdown.Item key={index} onSelect={() => console.log("selected")} onClick={()=> {console.log("click"); this.handleFilterRegionType(regionType['id']) }} >{regionType['label']}</Dropdown.Item>
-          ))}
-      </Dropdown.Menu>
-    </Dropdown>
-    )
-    */
-    /*
-    var validArrDivsOrBlank = (arrDivs.length > 0) ?
-      (
-        <div>
-            <div><FindByPointGraphVisualiser graphData={this.state.graphData} callback={this.props.renderResultSummaryFn}/></div> 
-            {filters}
-            {arrDivs}
-            </div>        
-      )
-      :
-      <div></div>;
-      */
+  
      var validArrDivsOrBlank = (arrDivs.length > 0) ?
       (
         <div>
@@ -430,6 +479,36 @@ export default class FindByPointResults extends Component {
       validArrDivsOrBlank = (<div><img src="/spinner.gif"/></div>)
     }
 
+    if(this.state.showTemporalAPIForm) {
+      if(this.state.mode == 'VIEW_FEATURE_GET_POINT_IN_TIME') {
+        return (<ViewFeaturePointInTime showCurrentResults={this.showCurrentResults} 
+          renderSelectedGeometryFn={here.props.renderSelectedGeometryFn} 
+          renderComparisonGeometryFn={here.props.renderComparisonGeometryFn}            
+          featureURI={this.state.currentTemporalFeatureURI}          
+          />)  
+      } 
+      if(this.state.mode == 'FIND_TEMPORAL_INTERSECTION_SINGLE_POINT') {
+        return (<TemporalOperationBySingleTimePoint showCurrentResults={this.showCurrentResults} 
+          operation="intersects"
+          renderSelectedGeometryFn={here.props.renderSelectedGeometryFn}  
+          renderComparisonGeometryFn={here.props.renderComparisonGeometryFn}            
+          featureURI={this.state.currentTemporalFeatureURI}/>)  
+      }  
+      if(this.state.mode == 'FIND_TEMPORAL_CONTAINS_SINGLE_POINT') {
+        return (<TemporalOperationBySingleTimePoint showCurrentResults={this.showCurrentResults} 
+          operation="contains"
+          renderSelectedGeometryFn={here.props.renderSelectedGeometryFn}  
+          renderComparisonGeometryFn={here.props.renderComparisonGeometryFn}            
+          featureURI={this.state.currentTemporalFeatureURI}/>)  
+      }  
+      if(this.state.mode == 'FIND_TEMPORAL_WITHIN_SINGLE_POINT') {
+        return (<TemporalOperationBySingleTimePoint showCurrentResults={this.showCurrentResults} 
+          operation="within"
+          renderSelectedGeometryFn={here.props.renderSelectedGeometryFn}  
+          renderComparisonGeometryFn={here.props.renderComparisonGeometryFn}            
+          featureURI={this.state.currentTemporalFeatureURI}/>)  
+      }  
+    }
     return (
       <div className="h-100" >
         <Row>

@@ -18,6 +18,7 @@ export default class SimpleLeaflet extends Component {
       hasBoundary: false,
       mounted: false,
       geojson: {},
+      comparisonGeojson: {},
       unique_key: new Date(),
       latlng: {
         lat: -25.2744,
@@ -28,6 +29,8 @@ export default class SimpleLeaflet extends Component {
       pointSelectCallback: props.pointSelectCallback
     };
     this.groupRef = createRef();
+    this.groupRef2 = createRef();
+
     this.mapRef = createRef();
     this.zoomRef = createRef();
 
@@ -39,20 +42,57 @@ export default class SimpleLeaflet extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (this.props.geometryGeojson !== this.state.geojson) {
-        this.setState({
-          geojson: this.props.geometryGeojson,
-          hasBoundary: true
-        });        
+      if(this.props.geometryGeojson !== 'undefined')  {
+          this.setState({
+            geojson: this.props.geometryGeojson,
+            hasBoundary: true
+          });        
+      }
         console.log("Map updated!");
         console.log(this.state.geojson);
         if(this.state.mounted) {
           
         }  
     }
+    if (this.props.comparisonGeometryGeojson !== this.state.comparisonGeojson) {
+      if(this.props.comparisonGeometryGeojson !== 'undefined')  {
+
+        this.setState({
+          comparisonGeojson: this.props.comparisonGeometryGeojson,
+          hasBoundary: true
+        });        
+      }
+      console.log("Map updated!");
+      console.log(this.state.comparisonGeojson);
+      if(this.state.mounted) {
+        
+      }  
+  }
     console.log("map updated")
-    if(this.state.geojson != null && this.state.geojson !== 'undefined' && Object.keys(this.state.geojson).length !== 0) {
+    if( this.state.geojson != null && this.state.geojson !== 'undefined' && Object.keys(this.state.geojson).length !== 0) {
       const map = this.mapRef.current.leafletElement;
       const group = this.groupRef.current.leafletElement;
+      var bounds = group.getBounds();
+
+      if(bounds && Object.keys(bounds).length === 0 && bounds.constructor === Object) {
+        console.log("empty bounds. skipping map fit bounds/setview");
+      }
+        //detect if bounds is a point
+      else if( (bounds._northEast.lat == bounds._southWest.lat) && (bounds._northEast.lng == bounds._southWest.lng)) {
+        bounds._northEast.lat += 0.000000000001;
+        bounds._northEast.lng += 0.000000000001;
+        map.setView([bounds._northEast.lat, bounds._northEast.lng], 15);
+        this.setState({zoom: 15});
+      }
+      else {
+        console.log(bounds);
+        map.fitBounds(bounds);
+      }
+    }
+
+    if( this.state.comparisonGeojson != null && this.state.comparisonGeojson !== 'undefined' && Object.keys(this.state.comparisonGeojson).length !== 0) {
+      const map = this.mapRef.current.leafletElement;
+      const group = this.groupRef2.current.leafletElement;
       var bounds = group.getBounds();
 
       //detect if bounds is a point
@@ -60,6 +100,7 @@ export default class SimpleLeaflet extends Component {
         bounds._northEast.lat += 0.000000000001;
         bounds._northEast.lng += 0.000000000001;
         map.setView([bounds._northEast.lat, bounds._northEast.lng], 15);
+        this.setState({zoom: 15});
       }
       else {
         console.log(bounds);
@@ -79,11 +120,16 @@ export default class SimpleLeaflet extends Component {
     console.log(e);
     if (map != null) {
       //map.leafletElement.locate()
+      const zoom  = map.leafletElement.getZoom();
       this.setState({
         latlng: e.latlng,
-        hasLocation: true
+        hasLocation: true,
+        geojson: null,
+        comparisonGeojson: null,
+        zoom: zoom
       });
     }
+    
     console.log(this.state);
     /*var url = new URL(' https://raw.githubusercontent.com/tonywr71/GeoJson-Data/master/suburb-10-nt.geojson');
     console.log(url);
@@ -108,6 +154,7 @@ export default class SimpleLeaflet extends Component {
       ); */
     this.state.inputRefFn(this.state.latlng);
     this.state.pointSelectCallback(e);
+    //clear the geojson
   };
 
   //assume jsonData is a geojson geometry
@@ -131,6 +178,30 @@ export default class SimpleLeaflet extends Component {
     });
   };
 
+  styleGeom = () => {
+    return {
+      // the fillColor is adapted from a property which can be changed by the user (segment)
+      fillColor: '#3388ff',
+      weight: 1,
+      //stroke-width: to have a constant width on the screen need to adapt with scale 
+      opacity: 1,
+      color: '#3388ff',
+      fillOpacity: 0.5
+    };
+  }
+  
+  styleComparisonGeom = () => {
+    return {
+      // the fillColor is adapted from a property which can be changed by the user (segment)
+      fillColor: 'red',
+      weight: 0.3,
+      //stroke-width: to have a constant width on the screen need to adapt with scale 
+      opacity: 1,
+      color: 'black',
+      fillOpacity: 0.5
+    };
+  }
+
   render() {
    
     const marker = this.state.hasLocation ? (
@@ -138,8 +209,12 @@ export default class SimpleLeaflet extends Component {
         <Popup> You clicked here </Popup>{" "}
       </Marker>
     ) : null;
-    var geojson_layer = this.state.hasBoundary ? (
-      <GeoJSON key={hash(this.state.geojson)} data={this.state.geojson} />
+    var geojson_layer = ( this.state.hasBoundary && this.state.comparisonGeojson !== 'undefined' )? (
+      <GeoJSON key={hash(this.state.geojson)} data={this.state.geojson} style={this.styleGeom()}/>
+    ) : null;
+
+    var comparison_geojson_layer = (this.state.hasBoundary && (typeof this.state.comparisonGeojson !== 'undefined') )? (
+      <GeoJSON key={hash(this.state.comparisonGeojson)} data={this.state.comparisonGeojson} style={this.styleComparisonGeom()} />
     ) : null;
     
     return (
@@ -158,6 +233,9 @@ export default class SimpleLeaflet extends Component {
         {marker} 
         <FeatureGroup ref={this.groupRef}>
           {geojson_layer}
+        </FeatureGroup>
+        <FeatureGroup ref={this.groupRef2}>
+          {comparison_geojson_layer}
         </FeatureGroup>
         {" "}
       </Map>

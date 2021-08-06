@@ -72,7 +72,7 @@ function About() {
   return (
      <div>
         <h2>About</h2>
-        <p>Prototype interfaces using the <a href="https://api.loci.cat">Loc-I Integration API</a>.</p>
+        <p>This site demonstrates prototype Loc-I change over time interfaces.</p>
         <p>Please note this site is in development and is available for demonstration purposes only.</p>
         <p>Check out more information about the Loc-I project at <a href="http://locationindex.org/">http://locationindex.org/</a></p>
      </div>

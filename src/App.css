@@ -262,12 +262,13 @@ circle.contain{
 }
 
 .mainPageResultListItem {
-  border: 1px solid black;
+  /* border: 1px solid black; */
+  /*background-color:rgba(191, 191, 191, 0.);*/
   padding-left: 5px;
   padding-top: 5px;
   padding-bottom: 5px;
   margin-top: 5px;
-  margin-bottom: 5px;
+  margin-bottom: 25px;
   /* Safari 3-4, iOS 1-3.2, Android 1.6- */
   -webkit-border-radius: 5px; 
 
@@ -304,4 +305,69 @@ circle.contain{
 
 .feature-res-btn-list > * {
   display: inline-block;
+}
+
+.feature-res-btn-list > .btn-toolbar {
+  display: inline-flex;
+}
+
+.feature-res-btn-list > .btn-toolbar > *{
+  margin-right: 5px;
+  padding-top: 2px
+}
+
+
+.featureInfoKey {
+  font-weight: 500;
+  margin-right: 20px
+}
+
+.featureInfoValue {
+  font-weight: normal
+}
+
+
+.featureHeader {
+  font-weight: 700;
+  margin-top: 20px
+}
+
+.temporalSearchResults {
+  overflow: auto;
+
+}
+
+.temporalSearchResults {
+  height: 45vh;
+  overflow-y: scroll;
+  width: 100%
+}
+.temporalSearchResults-main {
+  height: 85vh;    
+  overflow-y: scroll;    
+}
+
+.temporalSearchResults  h4 {
+  font-size: small;
+}
+
+.temporalSearchResults  .resBlock {
+  font-size: small;
+  padding-bottom: 20px;
+}
+
+.viewFeatureResult {
+  height: 45vh;
+  overflow-y: scroll;
+  width: 100%
+}
+
+h3 {
+  font-size: medium;
+  font-variant-caps: small-caps;
+}
+
+.form-group .form-label {
+  font-weight: 700;
+  padding-right: 5px
 }
