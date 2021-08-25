@@ -22,9 +22,9 @@
     "parse-gml-polygon": "^0.3.5",
     "proj4js": "^10.0.0",
     "query-string": "^6.8.3",
-    "react": "^16.10.2",
+    "react": "^17.0.2",
     "react-bootstrap": "^1.0.0-beta.14",
-    "react-datepicker": "^3.8.0",
+    "react-datepicker": "^4.1.1",
     "react-dom": "^16.10.2",
     "react-leaflet": "^2.4.0",
     "react-router-dom": "^5.1.2",
@@ -35,8 +35,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "deploy": "aws s3 sync build/ s3://loci-time-demo --acl public-read",
-    "deploy-to-dev": "aws s3 sync build/ s3://loci-time-demo-dev --acl public-read",
+    "deploy": "aws s3 sync build/ s3://timedemo.lab.loci.cat --acl public-read",
+    "deploy-to-dev": "aws s3 sync build/ s3://loci-integration-explorer-dev --acl public-read",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "start:debug": "node --inspect-brk=5858 ./server/index.js"
